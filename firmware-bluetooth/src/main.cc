@@ -960,14 +960,14 @@ void queue_out_report(uint16_t interface, uint8_t report_id, const uint8_t* buff
 }
 
 // Alternative implementation using bt_hogp_rep_write (with response):
-static void haptic_write_cb(struct bt_hogp* hogp, struct bt_hogp_rep_info* rep,
-                            uint8_t err, const uint8_t* data) {
+static void hogp_output_write_cb(struct bt_hogp* hogp, struct bt_hogp_rep_info* rep, uint8_t err) {
     if (err) {
         LOG_ERR("Haptic write failed: %d", err);
     } else {
-        LOG_DBG("Haptic write success");
+        LOG_DBG("Haptic write success for report_id=%d", bt_hogp_rep_id(rep));
     }
 }
+
 
 static void send_haptic_feedback_with_response(uint8_t conn_idx, uint8_t report_id, 
                                                const uint8_t* data, uint8_t len) {
