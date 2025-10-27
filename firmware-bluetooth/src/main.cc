@@ -41,6 +41,60 @@ static auto BT_CONN_LE_CREATE_CONN_ = BT_CONN_LE_CREATE_CONN[0];
 
 static struct bt_hogp hogps[CONFIG_BT_MAX_CONN];
 
+// Add after the hogps array definition (around line 34)
+struct haptic_command {
+    uint8_t conn_idx;
+    uint8_t report_id;
+    uint8_t len;
+    uint8_t data[64];
+};
+
+K_MSGQ_DEFINE(haptic_q, sizeof(struct haptic_command), 16, 4);
+
+// =============================================================================
+// SWITCH HD RUMBLE STRUCTURES AND CONSTANTS
+// =============================================================================
+
+// Switch rumble data coming from console (input report from Switch console)
+// This appears in USB output reports when Switch console sends rumble to Pro Controller
+struct switch_rumble_packet {
+    uint8_t report_id;       // 0x01 for USB, 0x10 for Bluetooth
+    uint8_t counter;         // Packet counter (increments)
+    uint8_t rumble_left[4];  // Left motor HD rumble data
+    uint8_t rumble_right[4]; // Right motor HD rumble data
+} __attribute__((packed));
+
+// HD Rumble encoding (each 4 bytes):
+// Byte 0: High freq high byte
+// Byte 1: High freq low byte + High amp
+// Byte 2: Low freq + High amp low
+// Byte 3: Low amp
+
+// Neutral/stop rumble pattern for Switch
+static const uint8_t SWITCH_RUMBLE_NEUTRAL[4] = {0x00, 0x01, 0x40, 0x40};
+
+// =============================================================================
+// XBOX CONTROLLER OUTPUT STRUCTURES
+// =============================================================================
+
+// Xbox One/Series controller rumble format (output report 0x03)
+struct xbox_rumble_packet {
+    uint8_t enable;          // 0x03 = enable rumble
+    uint8_t mag_lt;          // Left trigger motor (0-100)
+    uint8_t mag_rt;          // Right trigger motor (0-100)
+    uint8_t mag_left;        // Left motor (0-100)
+    uint8_t mag_right;       // Right motor (0-100)
+    uint8_t duration;        // Duration in 10ms units (0xFF = continuous)
+    uint8_t delay;           // Delay before start in 10ms units
+    uint8_t repeat;          // Repeat count
+} __attribute__((packed));
+
+// Xbox 360 controller rumble format (simpler, no trigger motors)
+struct xbox360_rumble_packet {
+    uint8_t left_motor;      // 0-255
+    uint8_t right_motor;     // 0-255
+} __attribute__((packed));
+
 static K_SEM_DEFINE(usb_sem0, 1, 1);
 static K_SEM_DEFINE(usb_sem1, 1, 1);
 
@@ -884,10 +938,6 @@ uint64_t get_time() {
 void interval_override_updated() {
 }
 
-void queue_out_report(uint16_t interface, uint8_t report_id, const uint8_t* buffer, uint8_t len) {
-    // TODO
-}
-
 void queue_set_feature_report(uint16_t interface, uint8_t report_id, const uint8_t* buffer, uint8_t len) {
     // TODO
 }
@@ -1002,4 +1052,211 @@ int main() {
     }
 
     return 0;
+}
+
+// =============================================================================
+// SWITCH HD RUMBLE DECODING
+// =============================================================================
+
+// Decode high frequency from Switch HD rumble 4-byte block
+static uint16_t decode_hf_frequency(const uint8_t* rumble) {
+    // Frequency is encoded in bytes 0-1
+    uint16_t encoded = ((rumble[0] & 0xFF) << 8) | (rumble[1] & 0xFE);
+    // Simplified decoding - actual formula is more complex
+    return encoded;
+}
+
+// Decode low frequency from Switch HD rumble 4-byte block
+static uint16_t decode_lf_frequency(const uint8_t* rumble) {
+    // Low frequency in byte 2
+    uint8_t encoded = rumble[2] >> 1;
+    return encoded;
+}
+
+// Decode high frequency amplitude from Switch HD rumble 4-byte block
+static uint16_t decode_hf_amplitude(const uint8_t* rumble) {
+    // High amp split across bytes 1 and 2
+    uint16_t hf_amp = ((rumble[1] & 0x01) << 8) | (rumble[2] & 0x01);
+    return hf_amp;
+}
+
+// Decode low frequency amplitude from Switch HD rumble 4-byte block
+static uint8_t decode_lf_amplitude(const uint8_t* rumble) {
+    // Low amp in byte 3
+    return rumble[3];
+}
+
+// Convert Switch HD rumble to simple motor intensity (0-100 for Xbox)
+static uint8_t switch_rumble_to_intensity(const uint8_t* rumble) {
+    // Check for neutral/zero rumble pattern
+    if (memcmp(rumble, SWITCH_RUMBLE_NEUTRAL, 4) == 0) {
+        return 0;
+    }
+    
+    // Decode amplitudes
+    uint16_t hf_amp = decode_hf_amplitude(rumble);
+    uint8_t lf_amp = decode_lf_amplitude(rumble);
+    
+    // Switch uses exponential encoding, convert to linear 0-100 scale
+    // This is a simplified approximation - adjust multipliers for feel
+    uint32_t combined = (hf_amp * 2) + (lf_amp * 4);
+    
+    // Scale to 0-100 range for Xbox
+    uint8_t intensity = (combined > 100) ? 100 : combined;
+    
+    return intensity;
+}
+
+// =============================================================================
+// HAPTIC CONVERSION AND SENDING
+// =============================================================================
+
+// Convert Switch rumble to Xbox format and send
+static void convert_and_send_haptic(uint8_t conn_idx, const uint8_t* switch_data, uint8_t switch_len) {
+    if (switch_len < 10) {
+        LOG_WRN("Invalid Switch rumble length: %d", switch_len);
+        return;
+    }
+    
+    const struct switch_rumble_packet* switch_pkt = (const struct switch_rumble_packet*)switch_data;
+    
+    LOG_DBG("Switch rumble received on conn_idx=%d, counter=%d", conn_idx, switch_pkt->counter);
+    LOG_HEXDUMP_DBG(switch_pkt->rumble_left, 4, "left rumble");
+    LOG_HEXDUMP_DBG(switch_pkt->rumble_right, 4, "right rumble");
+    
+    // Convert to motor intensities
+    uint8_t left_intensity = switch_rumble_to_intensity(switch_pkt->rumble_left);
+    uint8_t right_intensity = switch_rumble_to_intensity(switch_pkt->rumble_right);
+    
+    LOG_DBG("Converted intensities: L=%d, R=%d", left_intensity, right_intensity);
+    
+    // Format for Xbox One/Series controller
+    struct xbox_rumble_packet xbox_rumble;
+    memset(&xbox_rumble, 0, sizeof(xbox_rumble));
+    
+    xbox_rumble.enable = 0x03;              // Enable rumble
+    xbox_rumble.mag_left = left_intensity;  // Main motors use full intensity
+    xbox_rumble.mag_right = right_intensity;
+    xbox_rumble.mag_lt = left_intensity / 3;   // Trigger motors at 1/3 intensity
+    xbox_rumble.mag_rt = right_intensity / 3;
+    xbox_rumble.duration = 0xFF;            // Continuous until next command
+    xbox_rumble.delay = 0x00;               // No delay
+    xbox_rumble.repeat = 0x00;              // No repeat
+    
+    // Queue the haptic command
+    struct haptic_command cmd;
+    cmd.conn_idx = conn_idx;
+    cmd.report_id = 0x03;  // Xbox rumble output report ID
+    cmd.len = sizeof(xbox_rumble);
+    memcpy(cmd.data, &xbox_rumble, sizeof(xbox_rumble));
+    
+    if (k_msgq_put(&haptic_q, &cmd, K_NO_WAIT)) {
+        LOG_WRN("Haptic queue full");
+    }
+}
+
+// Send haptic feedback to Bluetooth device
+static void send_haptic_feedback(uint8_t conn_idx, uint8_t report_id, const uint8_t* data, uint8_t len) {
+    if (conn_idx >= CONFIG_BT_MAX_CONN) {
+        LOG_ERR("Invalid conn_idx: %d", conn_idx);
+        return;
+    }
+
+    struct bt_hogp* hogp = &hogps[conn_idx];
+    
+    if (!bt_hogp_assign_check(hogp)) {
+        LOG_WRN("HOGP not assigned for conn_idx: %d", conn_idx);
+        return;
+    }
+
+    struct bt_hogp_rep_info* rep = NULL;
+    bool report_found = false;
+    
+    // Find the output report with matching report ID
+    while (NULL != (rep = bt_hogp_rep_next(hogp, rep))) {
+        if (bt_hogp_rep_type(rep) == BT_HIDS_REPORT_TYPE_OUTPUT) {
+            // For Xbox controllers, output reports may not have explicit IDs
+            // Try to send to any output report
+            LOG_DBG("Found output report, id=%d, size=%d", bt_hogp_rep_id(rep), bt_hogp_rep_size(rep));
+            
+            if ((bt_hogp_rep_id(rep) == report_id) || (bt_hogp_rep_id(rep) == 0)) {
+                LOG_DBG("Sending haptic to conn_idx=%d, len=%d", conn_idx, len);
+                LOG_HEXDUMP_DBG(data, len, "xbox haptic");
+                
+                int err = bt_hogp_rep_write_wo_rsp(hogp, rep, data, len, NULL);
+                if (err) {
+                    LOG_ERR("Failed to send haptic: %d", err);
+                } else {
+                    report_found = true;
+                }
+                break;
+            }
+        }
+    }
+    
+    if (!report_found) {
+        LOG_WRN("No suitable output report found for conn_idx=%d", conn_idx);
+    }
+}
+
+// Work function to process haptic queue
+static void haptic_work_fn(struct k_work* work) {
+    struct haptic_command cmd;
+    
+    while (!k_msgq_get(&haptic_q, &cmd, K_NO_WAIT)) {
+        send_haptic_feedback(cmd.conn_idx, cmd.report_id, cmd.data, cmd.len);
+    }
+}
+static K_WORK_DEFINE(haptic_work, haptic_work_fn);
+
+// =============================================================================
+// INTERFACE FUNCTIONS (called by remapper core)
+// =============================================================================
+
+// Replace the existing queue_out_report function (around line 742)
+void queue_out_report(uint16_t interface, uint8_t report_id, const uint8_t* buffer, uint8_t len) {
+    // Extract connection index from interface (high byte)
+    uint8_t conn_idx = interface >> 8;
+    
+    if (len > 64) {
+        LOG_ERR("Output report too large: %d", len);
+        return;
+    }
+    
+    LOG_DBG("Output report: interface=%04x, conn_idx=%d, report_id=%d, len=%d",
+            interface, conn_idx, report_id, len);
+    
+    // Check if this looks like Switch rumble data
+    // Switch uses report_id 0x01 (USB) or 0x10 (Bluetooth) with 10 bytes
+    // Format: [report_id, counter, left_rumble[4], right_rumble[4]]
+    bool is_switch_rumble = false;
+    
+    if (len == 10 && (report_id == 0x01 || report_id == 0x10)) {
+        // Validate it looks like rumble (not all zeros, not random data)
+        is_switch_rumble = true;
+    } else if (len >= 9) {
+        // Sometimes report_id is not in the buffer, check for pattern
+        // Counter byte followed by 8 bytes of rumble data
+        is_switch_rumble = true;
+    }
+    
+    if (is_switch_rumble) {
+        LOG_DBG("Detected Switch rumble, converting to Xbox format");
+        convert_and_send_haptic(conn_idx, buffer, len);
+        k_work_submit(&haptic_work);
+    } else {
+        // Pass through non-rumble output reports unchanged
+        LOG_DBG("Pass-through non-rumble output report");
+        struct haptic_command cmd;
+        cmd.conn_idx = conn_idx;
+        cmd.report_id = report_id;
+        cmd.len = len;
+        memcpy(cmd.data, buffer, len);
+        
+        if (k_msgq_put(&haptic_q, &cmd, K_NO_WAIT)) {
+            LOG_WRN("Haptic queue full");
+        } else {
+            k_work_submit(&haptic_work);
+        }
+    }
 }
