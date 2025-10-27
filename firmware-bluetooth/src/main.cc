@@ -47,6 +47,7 @@ struct haptic_command {
     uint8_t len;
     uint8_t data[64];
 };
+K_MSGQ_DEFINE(haptic_q, sizeof(struct haptic_command), 8, 4);
 
 static K_SEM_DEFINE(usb_sem0, 1, 1);
 static K_SEM_DEFINE(usb_sem1, 1, 1);
