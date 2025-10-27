@@ -992,7 +992,7 @@ static void send_haptic_feedback_with_response(uint8_t conn_idx, uint8_t report_
             LOG_DBG("Sending haptic with response to conn_idx=%d, report_id=%d, len=%d", 
                     conn_idx, report_id, len);
             
-            int err = bt_hogp_rep_write(hogp, rep, haptic_write_cb, data, len);
+            int err = bt_hogp_rep_write(hogp, rep, hogp_output_write_cb, data, len);
             if (err) {
                 LOG_ERR("Failed to send haptic: %d", err);
             }
