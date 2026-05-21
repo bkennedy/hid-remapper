@@ -44,6 +44,61 @@ const uint8_t resolution_multiplier_masks[] = {
     H_RESOLUTION_BITMASK,
 };
 
+struct axis_aggregate_t {
+    int32_t default_value = 0;
+    int32_t values[8] = {};
+    uint32_t generations[8] = {};
+    uint32_t generation = 0;
+};
+
+std::unordered_map<uint32_t, axis_aggregate_t> axis_aggregates;
+
+static bool should_aggregate_global_axis(uint32_t usage) {
+    uint32_t usage_page = usage & 0xffff0000;
+    uint16_t usage_id = usage & 0xffff;
+
+    return (usage_page == 0x00010000) && (usage_id >= 0x30) && (usage_id <= 0x35);
+}
+
+static int32_t axis_default_value(const usage_def_t& usage_def) {
+    int32_t raw_midpoint = usage_def.logical_minimum + ((usage_def.logical_maximum - usage_def.logical_minimum) / 2);
+
+    if (usage_def.should_be_scaled) {
+        return (int64_t) (raw_midpoint - usage_def.logical_minimum) * 255 / (usage_def.logical_maximum - usage_def.logical_minimum);
+    }
+
+    return raw_midpoint;
+}
+
+static int32_t aggregate_global_axis(uint32_t usage, int32_t value, int32_t default_value, uint8_t interface_idx) {
+    axis_aggregate_t& aggregate = axis_aggregates[usage];
+    if (aggregate.generation == 0) {
+        aggregate.default_value = default_value;
+        for (int i = 0; i < 8; i++) {
+            aggregate.values[i] = default_value;
+        }
+    }
+
+    if (interface_idx >= 8) {
+        return value;
+    }
+
+    aggregate.values[interface_idx] = value;
+    aggregate.generations[interface_idx] = ++aggregate.generation;
+
+    int32_t newest_value = aggregate.default_value;
+    uint32_t newest_generation = 0;
+    for (int i = 0; i < 8; i++) {
+        if ((aggregate.values[i] != aggregate.default_value) &&
+            (aggregate.generations[i] >= newest_generation)) {
+            newest_value = aggregate.values[i];
+            newest_generation = aggregate.generations[i];
+        }
+    }
+
+    return newest_value;
+}
+
 std::vector<reverse_mapping_t> reverse_mapping;
 std::vector<reverse_mapping_t> reverse_mapping_macros;
 std::vector<reverse_mapping_t> reverse_mapping_layers;
@@ -395,6 +450,7 @@ void set_mapping_from_config() {
     used_state_slots = 0;
     usage_state_ptr.clear();
     register_ptrs.clear();
+    axis_aggregates.clear();
     memset(input_state, 0, sizeof(input_state));
     memset(tap_hold_state, 0, sizeof(tap_hold_state));
     memset(sticky_state, 0, sizeof(sticky_state));
@@ -1521,6 +1577,9 @@ inline void read_input(const uint8_t* report, int len, uint32_t source_usage, co
                     *(their_usage.input_state_0) &= ~(1 << interface_idx);
                 }
             } else {
+                if (should_aggregate_global_axis(source_usage)) {
+                    scaled_value = aggregate_global_axis(source_usage, scaled_value, axis_default_value(their_usage), interface_idx);
+                }
                 *(their_usage.input_state_0) = scaled_value;
             }
         }
@@ -2031,6 +2090,7 @@ void print_stats() {
 void reset_state() {
     memset(registers, 0, sizeof(registers));
     accumulated.clear();
+    axis_aggregates.clear();
     layer_state_mask = 1;
     frame_counter = 0;
 }
