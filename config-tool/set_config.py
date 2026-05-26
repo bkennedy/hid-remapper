@@ -196,6 +196,7 @@ data = struct.pack(
 device.send_feature_report(add_crc(data))
 
 data = get_feature_report(device, REPORT_ID_CONFIG, CONFIG_SIZE + 1)
+data = bytes(data)
 (
     report_id,
     persist_config_return_code,

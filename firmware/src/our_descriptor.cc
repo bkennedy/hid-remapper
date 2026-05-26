@@ -2,6 +2,7 @@
 
 #include "globals.h"
 #include "our_descriptor.h"
+#include "platform.h"
 #include "ps_auth.h"
 #include "remapper.h"
 
@@ -267,6 +268,99 @@ const uint8_t our_report_descriptor_absolute[] = {
     0xC0,                      // End Collection
 };
 
+const uint8_t our_report_descriptor_switch_pro[] = {
+    0x05, 0x01,        // Usage Page (Generic Desktop Ctrls)
+    0x15, 0x00,        // Logical Minimum (0)
+    0x09, 0x04,        // Usage (Joystick)
+    0xA1, 0x01,        // Collection (Application)
+    0x85, 0x30,        //   Report ID (0x30)
+    0x05, 0x01,        //   Usage Page (Generic Desktop Ctrls)
+    0x05, 0x09,        //   Usage Page (Button)
+    0x19, 0x01,        //   Usage Minimum (0x01)
+    0x29, 0x0A,        //   Usage Maximum (0x0A)
+    0x15, 0x00,        //   Logical Minimum (0)
+    0x25, 0x01,        //   Logical Maximum (1)
+    0x75, 0x01,        //   Report Size (1)
+    0x95, 0x0A,        //   Report Count (10)
+    0x55, 0x00,        //   Unit Exponent (0)
+    0x65, 0x00,        //   Unit (None)
+    0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+    0x05, 0x09,        //   Usage Page (Button)
+    0x19, 0x0B,        //   Usage Minimum (0x0B)
+    0x29, 0x0E,        //   Usage Maximum (0x0E)
+    0x15, 0x00,        //   Logical Minimum (0)
+    0x25, 0x01,        //   Logical Maximum (1)
+    0x75, 0x01,        //   Report Size (1)
+    0x95, 0x04,        //   Report Count (4)
+    0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+    0x95, 0x02,        //   Report Count (2)
+    0x81, 0x03,        //   Input (Const,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+    0x0B, 0x01, 0x00, 0x01, 0x00,  //   Usage (Pointer)
+    0xA1, 0x00,                    //   Collection (Physical)
+    0x0B, 0x30, 0x00, 0x01, 0x00,  //     Usage (X)
+    0x0B, 0x31, 0x00, 0x01, 0x00,  //     Usage (Y)
+    0x0B, 0x32, 0x00, 0x01, 0x00,  //     Usage (Z)
+    0x0B, 0x35, 0x00, 0x01, 0x00,  //     Usage (Rz)
+    0x15, 0x00,                    //     Logical Minimum (0)
+    0x27, 0xFF, 0xFF, 0x00, 0x00,  //     Logical Maximum (65535)
+    0x75, 0x10,                    //     Report Size (16)
+    0x95, 0x04,                    //     Report Count (4)
+    0x81, 0x02,                    //     Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+    0xC0,                          //   End Collection
+    0x0B, 0x39, 0x00, 0x01, 0x00,  //   Usage (Hat switch)
+    0x15, 0x00,                    //   Logical Minimum (0)
+    0x25, 0x07,                    //   Logical Maximum (7)
+    0x35, 0x00,                    //   Physical Minimum (0)
+    0x46, 0x3B, 0x01,              //   Physical Maximum (315)
+    0x65, 0x14,                    //   Unit (System: English Rotation, Length: Centimeter)
+    0x75, 0x04,                    //   Report Size (4)
+    0x95, 0x01,                    //   Report Count (1)
+    0x81, 0x42,                    //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,Null State)
+    0x05, 0x09,                    //   Usage Page (Button)
+    0x19, 0x0F,                    //   Usage Minimum (0x0F)
+    0x29, 0x12,                    //   Usage Maximum (0x12)
+    0x15, 0x00,                    //   Logical Minimum (0)
+    0x25, 0x01,                    //   Logical Maximum (1)
+    0x75, 0x01,                    //   Report Size (1)
+    0x95, 0x04,                    //   Report Count (4)
+    0x81, 0x02,                    //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+    0x75, 0x08,        //   Report Size (8)
+    0x95, 0x34,        //   Report Count (52)
+    0x81, 0x03,        //   Input (Const,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+    0x06, 0x00, 0xFF,  //   Usage Page (Vendor Defined 0xFF00)
+    0x85, 0x21,        //   Report ID (0x21)
+    0x09, 0x01,        //   Usage (0x01)
+    0x75, 0x08,        //   Report Size (8)
+    0x95, 0x3F,        //   Report Count (63)
+    0x81, 0x03,        //   Input (Const,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+    0x85, 0x81,        //   Report ID (0x81)
+    0x09, 0x02,        //   Usage (0x02)
+    0x75, 0x08,        //   Report Size (8)
+    0x95, 0x3F,        //   Report Count (63)
+    0x81, 0x03,        //   Input (Const,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+    0x85, 0x01,        //   Report ID (0x01)
+    0x09, 0x03,        //   Usage (0x03)
+    0x75, 0x08,        //   Report Size (8)
+    0x95, 0x3F,        //   Report Count (63)
+    0x91, 0x83,        //   Output (Const,Var,Abs,No Wrap,Linear,Preferred State,No Null Position,Volatile)
+    0x85, 0x10,        //   Report ID (0x10)
+    0x09, 0x04,        //   Usage (0x04)
+    0x75, 0x08,        //   Report Size (8)
+    0x95, 0x3F,        //   Report Count (63)
+    0x91, 0x83,        //   Output (Const,Var,Abs,No Wrap,Linear,Preferred State,No Null Position,Volatile)
+    0x85, 0x80,        //   Report ID (0x80)
+    0x09, 0x05,        //   Usage (0x05)
+    0x75, 0x08,        //   Report Size (8)
+    0x95, 0x3F,        //   Report Count (63)
+    0x91, 0x83,        //   Output (Const,Var,Abs,No Wrap,Linear,Preferred State,No Null Position,Volatile)
+    0x85, 0x82,        //   Report ID (0x82)
+    0x09, 0x06,        //   Usage (0x06)
+    0x75, 0x08,        //   Report Size (8)
+    0x95, 0x3F,        //   Report Count (63)
+    0x91, 0x83,        //   Output (Const,Var,Abs,No Wrap,Linear,Preferred State,No Null Position,Volatile)
+    0xC0,              // End Collection
+};
+
 const uint8_t our_report_descriptor_horipad[] = {
     0x05, 0x01,        // Usage Page (Generic Desktop Ctrls)
     0x09, 0x05,        // Usage (Game Pad)
@@ -306,6 +400,34 @@ const uint8_t our_report_descriptor_horipad[] = {
     0x75, 0x08,        //   Report Size (8)
     0x95, 0x01,        //   Report Count (1)
     0x81, 0x01,        //   Input (Const,Array,Abs,No Wrap,Linear,Preferred State,No Null Position)
+    0x85, 0x02,        //   Report ID (2)
+    0x06, 0x00, 0xFF,  //   Usage Page (Vendor Defined 0xFF00)
+    0x09, 0x01,        //   Usage (0x01)
+    0x15, 0x00,        //   Logical Minimum (0)
+    0x26, 0xFF, 0x00,  //   Logical Maximum (255)
+    0x75, 0x08,        //   Report Size (8)
+    0x95, 0x3F,        //   Report Count (63)
+    0x91, 0x02,        //   Output (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position,Non-volatile)
+    0x85, 0x01,        //   Report ID (0x01)
+    0x09, 0x02,        //   Usage (0x02)
+    0x75, 0x08,        //   Report Size (8)
+    0x95, 0x3F,        //   Report Count (63)
+    0x91, 0x83,        //   Output (Const,Var,Abs,No Wrap,Linear,Preferred State,No Null Position,Volatile)
+    0x85, 0x10,        //   Report ID (0x10)
+    0x09, 0x03,        //   Usage (0x03)
+    0x75, 0x08,        //   Report Size (8)
+    0x95, 0x3F,        //   Report Count (63)
+    0x91, 0x83,        //   Output (Const,Var,Abs,No Wrap,Linear,Preferred State,No Null Position,Volatile)
+    0x85, 0x80,        //   Report ID (0x80)
+    0x09, 0x04,        //   Usage (0x04)
+    0x75, 0x08,        //   Report Size (8)
+    0x95, 0x3F,        //   Report Count (63)
+    0x91, 0x83,        //   Output (Const,Var,Abs,No Wrap,Linear,Preferred State,No Null Position,Volatile)
+    0x85, 0x82,        //   Report ID (0x82)
+    0x09, 0x05,        //   Usage (0x05)
+    0x75, 0x08,        //   Report Size (8)
+    0x95, 0x3F,        //   Report Count (63)
+    0x91, 0x83,        //   Output (Const,Var,Abs,No Wrap,Linear,Preferred State,No Null Position,Volatile)
     0xC0,              // End Collection
 };
 
@@ -529,6 +651,10 @@ void kb_mouse_handle_set_report(uint8_t report_id, const uint8_t* buffer, uint16
     }
 }
 
+void horipad_handle_set_report(uint8_t report_id, const uint8_t* buffer, uint16_t reqlen) {
+    host_rumble_received(report_id, buffer, reqlen);
+}
+
 bool kb_mouse_set_report_synchronous(uint8_t report_id) {
     return (report_id == REPORT_ID_MULTIPLIER);
 }
@@ -562,9 +688,126 @@ bool kb_mouse_should_cause_wakeup(uint8_t report_id, const uint8_t* buffer, uint
 }
 
 static const uint8_t horipad_neutral[] = { 0x00, 0x00, 0x0F, 0x80, 0x80, 0x80, 0x80, 0x00 };
+static const uint8_t switch_pro_neutral[] = {
+    0x00, 0x00,              // buttons
+    0x00, 0x80, 0x00, 0x80,  // left stick
+    0x00, 0x80, 0x00, 0x80,  // right stick
+    0x08,                    // hat + extra buttons
+};
 
-void horipad_clear_report(uint8_t* report, uint8_t report_id, uint16_t len) {
-    memcpy(report, horipad_neutral, sizeof(horipad_neutral));
+static uint32_t switch_pro_get_bits(const uint8_t* data, uint16_t bitpos, uint8_t size) {
+    uint32_t value = 0;
+    for (int i = 0; i < size; i++) {
+        value |= ((data[(bitpos + i) / 8] >> ((bitpos + i) % 8)) & 1) << i;
+    }
+    return value;
+}
+
+static void switch_pro_pack_stick(uint8_t* out, uint16_t x, uint16_t y, const uint8_t* neutral) {
+    if ((x == 0x8000) && (y == 0x8000)) {
+        memcpy(out, neutral, 3);
+        return;
+    }
+
+    uint16_t x12 = x >> 4;
+    uint16_t y12 = y >> 4;
+
+    out[0] = x12 & 0xff;
+    out[1] = ((x12 >> 8) & 0x0f) | ((y12 & 0x0f) << 4);
+    out[2] = (y12 >> 4) & 0xff;
+}
+
+void switch_controller_clear_report(uint8_t* report, uint8_t report_id, uint16_t len) {
+    if (report_id == 0x30) {
+        memset(report, 0, len);
+        memcpy(report, switch_pro_neutral, sizeof(switch_pro_neutral));
+    } else {
+        memcpy(report, horipad_neutral, sizeof(horipad_neutral));
+    }
+}
+
+void switch_pro_sanitize_report(uint8_t report_id, uint8_t* buffer, uint16_t len) {
+    if ((report_id != 0x30) || (len < 12)) {
+        return;
+    }
+
+    uint8_t generic[12];
+    memcpy(generic, buffer, sizeof(generic));
+    memset(buffer, 0, len);
+
+    buffer[0] = 0;
+    buffer[1] = 0x81;
+
+    uint16_t buttons = generic[0] | (generic[1] << 8);
+    auto button = [buttons](uint8_t idx) {
+        return !!(buttons & (1 << (idx - 1)));
+    };
+
+    buffer[2] =
+        (button(8) << 7) |   // ZR
+        (button(6) << 6) |   // R
+        (button(18) << 5) |  // right SR
+        (button(17) << 4) |  // right SL
+        (button(1) << 3) |   // A
+        (button(2) << 2) |   // B
+        (button(3) << 1) |   // X
+        button(4);           // Y
+
+    buffer[3] = 0x80 |
+        (button(14) << 5) |  // capture
+        (button(13) << 4) |  // home
+        (button(9) << 3) |   // left stick
+        (button(10) << 2) |  // right stick
+        (button(12) << 1) |  // plus
+        button(11);          // minus
+
+    buffer[4] =
+        (button(7) << 7) |   // ZL
+        (button(5) << 6) |   // L
+        (button(15) << 5) |  // left SL
+        (button(16) << 4);   // left SR
+
+    uint8_t hat = switch_pro_get_bits(generic, 80, 4);
+    switch (hat) {
+        case 0:
+            buffer[4] |= 1 << 1;  // up
+            break;
+        case 1:
+            buffer[4] |= (1 << 1) | (1 << 2);  // up/right
+            break;
+        case 2:
+            buffer[4] |= 1 << 2;  // right
+            break;
+        case 3:
+            buffer[4] |= (1 << 0) | (1 << 2);  // down/right
+            break;
+        case 4:
+            buffer[4] |= 1 << 0;  // down
+            break;
+        case 5:
+            buffer[4] |= (1 << 0) | (1 << 3);  // down/left
+            break;
+        case 6:
+            buffer[4] |= 1 << 3;  // left
+            break;
+        case 7:
+            buffer[4] |= (1 << 1) | (1 << 3);  // up/left
+            break;
+        default:
+            break;
+    }
+
+    uint16_t x = generic[2] | (generic[3] << 8);
+    uint16_t y = generic[4] | (generic[5] << 8);
+    uint16_t z = generic[6] | (generic[7] << 8);
+    uint16_t rz = generic[8] | (generic[9] << 8);
+    static const uint8_t left_neutral[] = { 0x00, 0x08, 0x80 };
+    static const uint8_t right_neutral[] = { 0x00, 0x08, 0x80 };
+    switch_pro_pack_stick(buffer + 5, x, y, left_neutral);
+    switch_pro_pack_stick(buffer + 8, z, rz, right_neutral);
+    if (len > 11) {
+        buffer[11] = 0x09;
+    }
 }
 
 void ps4_clear_report(uint8_t* report, uint8_t report_id, uint16_t len) {
@@ -595,6 +838,20 @@ int32_t horipad_default_value(uint32_t usage) {
         case 0x00010032:
         case 0x00010035:
             return 0x80;
+        default:
+            return 0;
+    }
+}
+
+int32_t switch_pro_default_value(uint32_t usage) {
+    switch (usage) {
+        case 0x00010039:
+            return 8;
+        case 0x00010030:
+        case 0x00010031:
+        case 0x00010032:
+        case 0x00010035:
+            return 0x8000;
         default:
             return 0;
     }
@@ -652,13 +909,15 @@ const our_descriptor_def_t our_descriptors[] = {
     },
     {
         .idx = 2,
-        .descriptor = our_report_descriptor_horipad,
-        .descriptor_length = sizeof(our_report_descriptor_horipad),
-        .vid = 0x0F0D,
-        .pid = 0x00C1,
+        .descriptor = our_report_descriptor_switch_pro,
+        .descriptor_length = sizeof(our_report_descriptor_switch_pro),
+        .vid = 0x057E,
+        .pid = 0x2009,
         .handle_received_report = do_handle_received_report,
-        .clear_report = horipad_clear_report,
-        .default_value = horipad_default_value,
+        .handle_set_report = horipad_handle_set_report,
+        .clear_report = switch_controller_clear_report,
+        .default_value = switch_pro_default_value,
+        .sanitize_report = switch_pro_sanitize_report,
     },
     {
         .idx = 3,

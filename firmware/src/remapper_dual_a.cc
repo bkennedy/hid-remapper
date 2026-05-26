@@ -127,6 +127,9 @@ void flash_b_side() {
     rp2040_add_flash_bit(0xffffffff, NULL, 0);
 }
 
+void host_rumble_received(uint8_t report_id, const uint8_t* buffer, uint16_t len) {
+}
+
 uint8_t buffer[64 + sizeof(send_out_report_t)];
 
 void queue_out_report(uint16_t interface, uint8_t report_id, const uint8_t* report, uint8_t len) {

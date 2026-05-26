@@ -150,7 +150,11 @@ def get_device():
         raise Exception("No HID Remapper devices found.")
     if len(devices) > 1:
         raise Exception("More than one HID Remapper device found.")
-    return hid.Device(path=devices[0]["path"])
+    if hasattr(hid, "Device"):
+        return hid.Device(path=devices[0]["path"])
+    device = hid.device()
+    device.open_path(devices[0]["path"])
+    return device
 
 
 def mask_to_layer_list(layer_mask):

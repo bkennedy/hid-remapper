@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.20.0)
 set(BOARD_ROOT ${CMAKE_CURRENT_LIST_DIR})
 
 add_compile_definitions(PERSISTED_CONFIG_SIZE=2048)
+add_compile_definitions(FORCE_OUR_DESCRIPTOR_NUMBER=2)
 
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 project(NONE)
@@ -22,4 +23,5 @@ target_sources(app PRIVATE
     ${REMAPPER_SRC}/quirks.cc
     ${REMAPPER_SRC}/remapper.cc
     ${REMAPPER_SRC}/ps_auth.cc
+    ${REMAPPER_SRC}/switch2_rumble.cc
 )

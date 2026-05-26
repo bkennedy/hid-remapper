@@ -11,6 +11,7 @@ data = struct.pack("<BBB26B", REPORT_ID_CONFIG, CONFIG_VERSION, GET_CONFIG, *([0
 device.send_feature_report(add_crc(data))
 
 data = get_feature_report(device, REPORT_ID_CONFIG, CONFIG_SIZE + 1)
+data = bytes(data)
 
 (
     report_id,
@@ -57,6 +58,7 @@ for i in range(mapping_count):
     )
     device.send_feature_report(add_crc(data))
     data = get_feature_report(device, REPORT_ID_CONFIG, CONFIG_SIZE + 1)
+    data = bytes(data)
     (
         report_id,
         target_usage,
@@ -99,6 +101,7 @@ for macro_i in range(NMACROS):
         )
         device.send_feature_report(add_crc(data))
         data = get_feature_report(device, REPORT_ID_CONFIG, CONFIG_SIZE + 1)
+        data = bytes(data)
         (
             report_id,
             nitems,
@@ -133,6 +136,7 @@ for expression_i in range(NEXPRESSIONS):
         )
         device.send_feature_report(add_crc(data))
         data = get_feature_report(device, REPORT_ID_CONFIG, CONFIG_SIZE + 1)
+        data = bytes(data)
         (
             report_id,
             nelems,
@@ -165,6 +169,7 @@ for quirk_i in range(quirk_count):
     )
     device.send_feature_report(add_crc(data))
     data = get_feature_report(device, REPORT_ID_CONFIG, CONFIG_SIZE + 1)
+    data = bytes(data)
     (
         report_id_,
         vendor_id,

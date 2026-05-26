@@ -163,6 +163,9 @@ void interval_override_updated() {
 void flash_b_side() {
 }
 
+void host_rumble_received(uint8_t report_id, const uint8_t* buffer, uint16_t len) {
+}
+
 void queue_out_report(uint16_t interface, uint8_t report_id, const uint8_t* buffer, uint8_t len) {
 }
 

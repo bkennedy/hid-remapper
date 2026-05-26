@@ -9,7 +9,9 @@
 #include "descriptor_parser.h"
 #include "out_report.h"
 #include "remapper.h"
+#include "switch2_rumble.h"
 #include "tick.h"
+#include "xbox.h"
 
 static bool __no_inline_not_in_flash_func(manual_sof)(repeating_timer_t* rt) {
     pio_usb_host_frame();
@@ -53,6 +55,15 @@ void interval_override_updated() {
 }
 
 void flash_b_side() {
+}
+
+void host_rumble_received(uint8_t report_id, const uint8_t* buffer, uint16_t len) {
+    uint8_t low_frequency = 0;
+    uint8_t high_frequency = 0;
+
+    if (switch2_rumble_decode(report_id, buffer, len, &low_frequency, &high_frequency)) {
+        xboxh_rumble_all(low_frequency, high_frequency);
+    }
 }
 
 void descriptor_received_callback(uint16_t vendor_id, uint16_t product_id, const uint8_t* report_descriptor, int len, uint16_t interface, uint8_t hub_port, uint8_t itf_num) {

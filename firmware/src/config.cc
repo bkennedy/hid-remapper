@@ -10,6 +10,19 @@
 #include "platform.h"
 #include "remapper.h"
 
+#ifdef FORCE_OUR_DESCRIPTOR_NUMBER
+static uint8_t sanitize_our_descriptor_number(uint8_t descriptor_number) {
+    return FORCE_OUR_DESCRIPTOR_NUMBER;
+}
+#else
+static uint8_t sanitize_our_descriptor_number(uint8_t descriptor_number) {
+    if (descriptor_number >= NOUR_DESCRIPTORS) {
+        return 0;
+    }
+    return descriptor_number;
+}
+#endif
+
 const uint8_t CONFIG_VERSION = 18;
 
 const uint8_t CONFIG_FLAG_UNMAPPED_PASSTHROUGH = 0x01;
@@ -241,10 +254,7 @@ void load_config_v9(const uint8_t* persisted_config) {
     tap_hold_threshold = config->tap_hold_threshold;
     gpio_debounce_time = config->gpio_debounce_time_ms * 1000;
     interval_override = config->interval_override;
-    our_descriptor_number = config->our_descriptor_number;
-    if (our_descriptor_number >= NOUR_DESCRIPTORS) {
-        our_descriptor_number = 0;
-    }
+    our_descriptor_number = sanitize_our_descriptor_number(config->our_descriptor_number);
     mapping_config10_t* buffer_mappings = (mapping_config10_t*) (persisted_config + sizeof(persist_config_v9_t));
     for (uint32_t i = 0; i < config->mapping_count; i++) {
         config_mappings.push_back(mapping_config_10_to_11(buffer_mappings[i]));
@@ -301,10 +311,7 @@ void load_config_v10(const uint8_t* persisted_config) {
     tap_hold_threshold = config->tap_hold_threshold;
     gpio_debounce_time = config->gpio_debounce_time_ms * 1000;
     interval_override = config->interval_override;
-    our_descriptor_number = config->our_descriptor_number;
-    if (our_descriptor_number >= NOUR_DESCRIPTORS) {
-        our_descriptor_number = 0;
-    }
+    our_descriptor_number = sanitize_our_descriptor_number(config->our_descriptor_number);
     macro_entry_duration = config->macro_entry_duration;
     mapping_config10_t* buffer_mappings = (mapping_config10_t*) (persisted_config + sizeof(persist_config_v10_t));
     for (uint32_t i = 0; i < config->mapping_count; i++) {
@@ -362,10 +369,7 @@ void load_config_v11(const uint8_t* persisted_config) {
     tap_hold_threshold = config->tap_hold_threshold;
     gpio_debounce_time = config->gpio_debounce_time_ms * 1000;
     interval_override = config->interval_override;
-    our_descriptor_number = config->our_descriptor_number;
-    if (our_descriptor_number >= NOUR_DESCRIPTORS) {
-        our_descriptor_number = 0;
-    }
+    our_descriptor_number = sanitize_our_descriptor_number(config->our_descriptor_number);
     macro_entry_duration = config->macro_entry_duration;
     mapping_config11_t* buffer_mappings = (mapping_config11_t*) (persisted_config + sizeof(persist_config_v11_t));
     for (uint32_t i = 0; i < config->mapping_count; i++) {
@@ -422,10 +426,7 @@ void load_config_v12(const uint8_t* persisted_config) {
     tap_hold_threshold = config->tap_hold_threshold;
     gpio_debounce_time = config->gpio_debounce_time_ms * 1000;
     interval_override = config->interval_override;
-    our_descriptor_number = config->our_descriptor_number;
-    if (our_descriptor_number >= NOUR_DESCRIPTORS) {
-        our_descriptor_number = 0;
-    }
+    our_descriptor_number = sanitize_our_descriptor_number(config->our_descriptor_number);
     macro_entry_duration = config->macro_entry_duration;
     mapping_config11_t* buffer_mappings = (mapping_config11_t*) (persisted_config + sizeof(persist_config_v12_t));
     for (uint32_t i = 0; i < config->mapping_count; i++) {
@@ -490,10 +491,7 @@ void load_config_v13(const uint8_t* persisted_config) {
     tap_hold_threshold = config->tap_hold_threshold;
     gpio_debounce_time = config->gpio_debounce_time_ms * 1000;
     interval_override = config->interval_override;
-    our_descriptor_number = config->our_descriptor_number;
-    if (our_descriptor_number >= NOUR_DESCRIPTORS) {
-        our_descriptor_number = 0;
-    }
+    our_descriptor_number = sanitize_our_descriptor_number(config->our_descriptor_number);
     macro_entry_duration = config->macro_entry_duration;
     mapping_config11_t* buffer_mappings = (mapping_config11_t*) (persisted_config + sizeof(persist_config_v13_t));
     for (uint32_t i = 0; i < config->mapping_count; i++) {
@@ -625,10 +623,7 @@ void load_config(const uint8_t* persisted_config) {
     tap_hold_threshold = config->tap_hold_threshold;
     gpio_debounce_time = config->gpio_debounce_time_ms * 1000;
     interval_override = config->interval_override;
-    our_descriptor_number = config->our_descriptor_number;
-    if (our_descriptor_number >= NOUR_DESCRIPTORS) {
-        our_descriptor_number = 0;
-    }
+    our_descriptor_number = sanitize_our_descriptor_number(config->our_descriptor_number);
     macro_entry_duration = config->macro_entry_duration;
     mapping_config11_t* buffer_mappings = (mapping_config11_t*) (persisted_config + sizeof(persist_config_v18_t));
     for (uint32_t i = 0; i < config->mapping_count; i++) {
@@ -979,10 +974,7 @@ void handle_set_report1(uint8_t report_id, uint8_t const* buffer, uint16_t bufsi
                     if (prev_interval_override != interval_override) {
                         interval_override_updated();
                     }
-                    our_descriptor_number = config->our_descriptor_number;
-                    if (our_descriptor_number >= NOUR_DESCRIPTORS) {
-                        our_descriptor_number = 0;
-                    }
+                    our_descriptor_number = sanitize_our_descriptor_number(config->our_descriptor_number);
                     macro_entry_duration = config->macro_entry_duration;
                     break;
                 }

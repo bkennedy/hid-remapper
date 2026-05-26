@@ -41,6 +41,7 @@ add_executable(remapper
     src/quirks.cc
     src/interval_override.cc
     src/out_report.cc
+    src/switch2_rumble.cc
     src/tick.cc
     src/activity_led.cc
     src/ps_auth.cc

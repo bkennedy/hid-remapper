@@ -157,6 +157,7 @@ struct xdev_t {
     uint8_t out_ep = 0;
     uint16_t out_ep_size = 0;
     int setup_stage = 0;
+    uint8_t rumble_sequence = 0;
     uint8_t buf[64] = { 0 };
 };
 
@@ -321,6 +322,42 @@ static void process_setup(struct xdev_t* xdev) {
                 hub_port, xdev->itf_num);
             usbh_driver_set_config_complete(xdev->dev_addr, xdev->itf_num);
             break;
+    }
+}
+
+static void xbox_one_rumble(struct xdev_t* xdev, uint8_t low_frequency, uint8_t high_frequency) {
+    uint8_t rumble[] = {
+        0x09, 0x00, xdev->rumble_sequence++, 0x09, 0x00, 0x0f, 0x00, 0x00,
+        low_frequency, high_frequency, 0xff, 0x00, 0x00
+    };
+
+    xxfer_out(xdev, rumble, sizeof(rumble));
+}
+
+static void xbox_360_rumble(struct xdev_t* xdev, uint8_t low_frequency, uint8_t high_frequency) {
+    uint8_t rumble[] = {
+        0x00, 0x08, 0x00, low_frequency, high_frequency, 0x00, 0x00, 0x00
+    };
+
+    xxfer_out(xdev, rumble, sizeof(rumble));
+}
+
+void xboxh_rumble_all(uint8_t low_frequency, uint8_t high_frequency) {
+    for (int i = 0; i < NXDEVS; i++) {
+        if (xdevs[i].dev_addr == 0 || xdevs[i].out_ep == 0 || xdevs[i].setup_stage != 0) {
+            continue;
+        }
+
+        switch (xdevs[i].type) {
+            case XType::XBOX_ONE:
+                xbox_one_rumble(&xdevs[i], low_frequency, high_frequency);
+                break;
+            case XType::XBOX_360:
+                xbox_360_rumble(&xdevs[i], low_frequency, high_frequency);
+                break;
+            default:
+                break;
+        }
     }
 }
 
