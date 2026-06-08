@@ -38,6 +38,8 @@ void send_out_report();
 bool send_monitor_report(send_report_t do_send_report);
 void print_stats();
 void reset_state();
+uint8_t debug_outgoing_report_count();
+uint32_t debug_outgoing_report_overflows();
 
 void set_monitor_enabled(bool enabled);
 void monitor_usage(uint32_t usage, int32_t value, uint8_t hub_port);
