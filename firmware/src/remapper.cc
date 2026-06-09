@@ -112,6 +112,23 @@ uint8_t monitor_usages_queued = 0;
 monitor_report_t monitor_report[2] = { { .report_id = REPORT_ID_MONITOR }, { .report_id = REPORT_ID_MONITOR } };
 uint8_t monitor_report_idx = 0;
 
+struct debug_parsed_input_t {
+    uint32_t seq;
+    int32_t raw_value;
+    int32_t scaled_value;
+    int32_t logical_minimum;
+    int32_t logical_maximum;
+    uint32_t meta;
+};
+
+#define DEBUG_PARSED_AXIS_COUNT 4
+#define DEBUG_PARSED_AXIS_HISTORY 8
+
+std::unordered_map<uint32_t, debug_parsed_input_t> debug_parsed_inputs;
+debug_parsed_input_t debug_parsed_axis_history_frames[DEBUG_PARSED_AXIS_COUNT][DEBUG_PARSED_AXIS_HISTORY];
+uint8_t debug_parsed_axis_history_write[DEBUG_PARSED_AXIS_COUNT] = {};
+uint32_t debug_parsed_input_seq = 0;
+
 #define NREGISTERS 32
 int32_t registers[NREGISTERS] = { 0 };
 std::vector<register_ptrs_t> register_ptrs;
@@ -359,6 +376,50 @@ inline int32_t* get_state_ptr(uint32_t usage, uint8_t hub_port, bool assign_if_a
     }
 
     return NULL;
+}
+
+int32_t debug_input_state(uint32_t usage, uint8_t hub_port, bool raw, bool* found) {
+    int32_t* state_ptr = get_state_ptr(usage, hub_port, false, raw);
+    if (found != NULL) {
+        *found = state_ptr != NULL;
+    }
+    return state_ptr == NULL ? 0 : *state_ptr;
+}
+
+bool debug_parsed_input(uint32_t usage, uint32_t values[7]) {
+    auto search = debug_parsed_inputs.find(usage);
+    if (search == debug_parsed_inputs.end()) {
+        memset(values, 0, 7 * sizeof(uint32_t));
+        return false;
+    }
+
+    const debug_parsed_input_t& parsed = search->second;
+    values[0] = parsed.seq;
+    values[1] = (uint32_t) parsed.raw_value;
+    values[2] = (uint32_t) parsed.scaled_value;
+    values[3] = (uint32_t) parsed.logical_minimum;
+    values[4] = (uint32_t) parsed.logical_maximum;
+    values[5] = parsed.meta;
+    values[6] = usage;
+    return true;
+}
+
+bool debug_parsed_axis_history(uint8_t axis, uint8_t age, uint32_t values[7]) {
+    if (axis >= DEBUG_PARSED_AXIS_COUNT || age >= DEBUG_PARSED_AXIS_HISTORY) {
+        memset(values, 0, 7 * sizeof(uint32_t));
+        return false;
+    }
+
+    uint8_t idx = (debug_parsed_axis_history_write[axis] + DEBUG_PARSED_AXIS_HISTORY - 1 - age) % DEBUG_PARSED_AXIS_HISTORY;
+    const debug_parsed_input_t& parsed = debug_parsed_axis_history_frames[axis][idx];
+    values[0] = parsed.seq;
+    values[1] = (uint32_t) parsed.raw_value;
+    values[2] = (uint32_t) parsed.scaled_value;
+    values[3] = (uint32_t) parsed.logical_minimum;
+    values[4] = (uint32_t) parsed.logical_maximum;
+    values[5] = parsed.meta;
+    values[6] = age;
+    return parsed.seq != 0;
 }
 
 inline tap_hold_state_t* get_tap_hold_state_ptr(uint32_t usage, uint8_t hub_port, bool assign_if_absent = false) {
@@ -1534,6 +1595,37 @@ inline void read_input(const uint8_t* report, int len, uint32_t source_usage, co
             scaled_value = (int64_t) (value - their_usage.logical_minimum) * 255 / (their_usage.logical_maximum - their_usage.logical_minimum);  // XXX
         } else {
             scaled_value = value;
+        }
+        if ((source_usage == 0x00010030) ||
+            (source_usage == 0x00010031) ||
+            (source_usage == 0x00010032) ||
+            (source_usage == 0x00010035) ||
+            (source_usage == 0x00010039)) {
+            debug_parsed_input_t parsed = {
+                .seq = ++debug_parsed_input_seq,
+                .raw_value = value,
+                .scaled_value = scaled_value,
+                .logical_minimum = their_usage.logical_minimum,
+                .logical_maximum = their_usage.logical_maximum,
+                .meta = (uint32_t) their_usage.bitpos |
+                    ((uint32_t) their_usage.size << 16) |
+                    ((uint32_t) their_usage.report_id << 24),
+            };
+            debug_parsed_inputs[source_usage] = parsed;
+            uint8_t axis = DEBUG_PARSED_AXIS_COUNT;
+            if (source_usage == 0x00010030) {
+                axis = 0;
+            } else if (source_usage == 0x00010031) {
+                axis = 1;
+            } else if (source_usage == 0x00010032) {
+                axis = 2;
+            } else if (source_usage == 0x00010035) {
+                axis = 3;
+            }
+            if (axis < DEBUG_PARSED_AXIS_COUNT) {
+                debug_parsed_axis_history_frames[axis][debug_parsed_axis_history_write[axis]] = parsed;
+                debug_parsed_axis_history_write[axis] = (debug_parsed_axis_history_write[axis] + 1) % DEBUG_PARSED_AXIS_HISTORY;
+            }
         }
         if (their_usage.input_state_0 != NULL) {
             if ((their_usage.size == 1) || their_usage.is_array) {

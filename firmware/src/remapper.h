@@ -40,6 +40,9 @@ void print_stats();
 void reset_state();
 uint8_t debug_outgoing_report_count();
 uint32_t debug_outgoing_report_overflows();
+int32_t debug_input_state(uint32_t usage, uint8_t hub_port, bool raw, bool* found);
+bool debug_parsed_input(uint32_t usage, uint32_t values[7]);
+bool debug_parsed_axis_history(uint8_t axis, uint8_t age, uint32_t values[7]);
 
 void set_monitor_enabled(bool enabled);
 void monitor_usage(uint32_t usage, int32_t value, uint8_t hub_port);

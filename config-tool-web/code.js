@@ -876,11 +876,30 @@ function hex_word(value) {
     return (value >>> 0).toString(16).padStart(8, '0');
 }
 
+function switch_pro_trace_dirs(flags) {
+    let dirs = '';
+    if (flags & 1) dirs += 'L';
+    if (flags & 2) dirs += 'R';
+    if (flags & 4) dirs += 'U';
+    if (flags & 8) dirs += 'D';
+    return dirs || '-';
+}
+
+function format_parsed_axis(label, page) {
+    return label + ' seq=' + page[0] +
+        ' usage=0x' + hex_word(page[6]) +
+        ' raw=' + page[1] + ' scaled=' + page[2] +
+        ' logical=' + page[3] + '..' + page[4] +
+        ' report_id=0x' + hex_byte(page[5] >> 24) +
+        ' bitpos=' + (page[5] & 0xffff) +
+        ' size=' + ((page[5] >> 16) & 0xff);
+}
+
 async function switch_pro_diag() {
     clear_error();
     try {
         const pages = [];
-        for (let page = 0; page < 10; page++) {
+        for (let page = 0; page < 82; page++) {
             await send_feature_command(GET_SWITCH_PRO_DIAG, [[UINT32, page]]);
             pages.push(await read_config_feature([UINT32, UINT32, UINT32, UINT32, UINT32, UINT32, UINT32]));
         }
@@ -891,6 +910,14 @@ async function switch_pro_diag() {
             const p2 = pages[offset + 2];
             const p3 = pages[offset + 3];
             const p4 = pages[offset + 4];
+            const p5 = pages[offset + 5];
+            const p6 = pages[offset + 6];
+            const p7 = pages[offset + 7];
+            const p8 = pages[offset + 8];
+            const p9 = pages[offset + 9];
+            const p10 = pages[offset + 10];
+            const p11 = pages[offset + 11];
+            const p12 = pages[offset + 12];
             const buttons = p3[0];
             const left_stick = p3[1];
             const right_stick = p3[2];
@@ -899,8 +926,19 @@ async function switch_pro_diag() {
             const bt_disconnected = p3[6] & 0xffff;
             const last_disconnect = (p3[6] >>> 16) & 0xff;
             const conn_high = p3[6] >>> 24;
+            const left_out = p5[0];
+            const right_out = p5[1];
+            const hb_left_run = p6[4] & 0xffff;
+            const hb_left_run_max = p6[4] >>> 16;
+            const hb_up_run = p6[5] & 0xffff;
+            const hb_up_run_max = p6[5] >>> 16;
+            const hb_last_left = p6[6];
+            const source_meta = p7[0];
+            const source_iface = source_meta & 0xffff;
+            const source_report_id = (source_meta >>> 16) & 0xff;
+            const source_len = source_meta >>> 24;
 
-            return [
+            const lines = [
                 label,
                 'magic=0x' + hex_word(p0[0]) + ' version=' + p0[1] + ' enabled=' + p0[2],
                 'report_q=' + (p0[3] & 0xffff) + ' high=' + (p0[3] >>> 16) +
@@ -926,14 +964,126 @@ async function switch_pro_diag() {
                 ' ly=0x' + (p4[3] & 0xffff).toString(16).padStart(4, '0') + '..0x' + (p4[3] >>> 16).toString(16).padStart(4, '0') +
                 ' rx=0x' + (p4[4] & 0xffff).toString(16).padStart(4, '0') + '..0x' + (p4[4] >>> 16).toString(16).padStart(4, '0') +
                 ' ry=0x' + (p4[5] & 0xffff).toString(16).padStart(4, '0') + '..0x' + (p4[5] >>> 16).toString(16).padStart(4, '0'),
+                'out_last left=' + hex_byte(left_out) + ' ' + hex_byte(left_out >> 8) + ' ' + hex_byte(left_out >> 16) +
+                ' right=' + hex_byte(right_out) + ' ' + hex_byte(right_out >> 8) + ' ' + hex_byte(right_out >> 16),
+                'out_range left_b0=' + hex_byte(p5[2]) + '..' + hex_byte(p5[2] >> 8) +
+                ' left_b1=' + hex_byte(p5[2] >> 16) + '..' + hex_byte(p5[2] >> 24) +
+                ' left_b2=' + hex_byte(p5[3]) + '..' + hex_byte(p5[3] >> 8) +
+                ' right_b0=' + hex_byte(p5[3] >> 16) + '..' + hex_byte(p5[3] >> 24) +
+                ' right_b1=' + hex_byte(p5[4]) + '..' + hex_byte(p5[4] >> 8) +
+                ' right_b2=' + hex_byte(p5[4] >> 16) + '..' + hex_byte(p5[4] >> 24),
+                'heartbeat_dir left=' + p6[0] + ' up=' + p6[1] + ' right=' + p6[2] + ' down=' + p6[3] +
+                ' left_run=' + hb_left_run + '/' + hb_left_run_max +
+                ' up_run=' + hb_up_run + '/' + hb_up_run_max +
+                ' hb_last_left=' + hex_byte(hb_last_left) + ' ' + hex_byte(hb_last_left >> 8) + ' ' + hex_byte(hb_last_left >> 16),
+                'source_last iface=0x' + source_iface.toString(16).padStart(4, '0') +
+                ' report_id=0x' + hex_byte(source_report_id) + ' len=' + source_len +
+                ' ms=' + p7[5] +
+                ' data=' + [p7[1], p7[2], p7[3], p7[4]].map((word) =>
+                    hex_byte(word) + ' ' + hex_byte(word >> 8) + ' ' + hex_byte(word >> 16) + ' ' + hex_byte(word >> 24)
+                ).join(' | '),
+                'up_snap_candidates=' + p7[6],
+                'state_axes scaled/raw lx=' + (p8[0] & 0xffff) + '/0x' + (p8[0] >>> 16).toString(16).padStart(4, '0') +
+                ' ly=' + (p8[1] & 0xffff) + '/0x' + (p8[1] >>> 16).toString(16).padStart(4, '0') +
+                ' rx=' + (p8[2] & 0xffff) + '/0x' + (p8[2] >>> 16).toString(16).padStart(4, '0') +
+                ' ry=' + (p8[3] & 0xffff) + '/0x' + (p8[3] >>> 16).toString(16).padStart(4, '0') +
+                ' found=0x' + p8[4].toString(16),
+                format_parsed_axis('parsed_lx', p9),
+                format_parsed_axis('parsed_ly', p10),
+                format_parsed_axis('parsed_rx', p11),
+                format_parsed_axis('parsed_ry', p12),
             ];
+
+            lines.push('parsed left-Y history newest first:');
+            for (let i = 0; i < 8; i++) {
+                const axis = pages[offset + 13 + i];
+                if (axis[0] === 0) {
+                    continue;
+                }
+                lines.push(format_parsed_axis('parsed_ly[' + i + ']', axis));
+            }
+
+            lines.push('trace newest first:');
+            for (let i = 0; i < 8; i++) {
+                const trace = pages[offset + 21 + i];
+                const seq = trace[0];
+                if (seq === 0) {
+                    continue;
+                }
+                const rawLx = trace[1] & 0xffff;
+                const rawLy = trace[1] >>> 16;
+                const normLx = trace[2] & 0xffff;
+                const normLy = trace[2] >>> 16;
+                const finalLx = trace[3] & 0xffff;
+                const finalLy = trace[3] >>> 16;
+                const out = trace[4];
+                const flags = trace[5];
+                lines.push(
+                    'trace[' + i + '] seq=' + seq +
+                    ' raw=' + rawLx.toString(16).padStart(4, '0') + ',' + rawLy.toString(16).padStart(4, '0') +
+                    ' norm=' + normLx.toString(16).padStart(4, '0') + ',' + normLy.toString(16).padStart(4, '0') +
+                    ' final=' + finalLx.toString(16).padStart(4, '0') + ',' + finalLy.toString(16).padStart(4, '0') +
+                    ' out=' + hex_byte(out) + ' ' + hex_byte(out >> 8) + ' ' + hex_byte(out >> 16) +
+                    ' dirs=' + switch_pro_trace_dirs(flags) + ' flags=0x' + flags.toString(16)
+                );
+            }
+
+            lines.push('extreme snapshots:');
+            const extremeNames = ['left', 'right', 'forward', 'back'];
+            for (let i = 0; i < 4; i++) {
+                const trace = pages[offset + 29 + i];
+                const seq = trace[0];
+                if (seq === 0) {
+                    continue;
+                }
+                const rawLx = trace[1] & 0xffff;
+                const rawLy = trace[1] >>> 16;
+                const normLx = trace[2] & 0xffff;
+                const normLy = trace[2] >>> 16;
+                const finalLx = trace[3] & 0xffff;
+                const finalLy = trace[3] >>> 16;
+                const out = trace[4];
+                const flags = trace[5];
+                lines.push(
+                    'extreme[' + extremeNames[i] + '] seq=' + seq +
+                    ' raw=' + rawLx.toString(16).padStart(4, '0') + ',' + rawLy.toString(16).padStart(4, '0') +
+                    ' norm=' + normLx.toString(16).padStart(4, '0') + ',' + normLy.toString(16).padStart(4, '0') +
+                    ' final=' + finalLx.toString(16).padStart(4, '0') + ',' + finalLy.toString(16).padStart(4, '0') +
+                    ' out=' + hex_byte(out) + ' ' + hex_byte(out >> 8) + ' ' + hex_byte(out >> 16) +
+                    ' dirs=' + switch_pro_trace_dirs(flags) + ' flags=0x' + flags.toString(16)
+                );
+            }
+
+            lines.push('source trace newest first:');
+            for (let i = 0; i < 8; i++) {
+                const trace = pages[offset + 33 + i];
+                const seq = trace[0];
+                if (seq === 0) {
+                    continue;
+                }
+                const meta = trace[1];
+                const iface = meta & 0xffff;
+                const reportId = (meta >>> 16) & 0xff;
+                const len = meta >>> 24;
+                lines.push(
+                    'source[' + i + '] seq=' + seq +
+                    ' iface=0x' + iface.toString(16).padStart(4, '0') +
+                    ' report_id=0x' + hex_byte(reportId) + ' len=' + len +
+                    ' ms=' + trace[6] +
+                    ' data=' + [trace[2], trace[3], trace[4], trace[5]].map((word) =>
+                        hex_byte(word) + ' ' + hex_byte(word >> 8) + ' ' + hex_byte(word >> 16) + ' ' + hex_byte(word >> 24)
+                    ).join(' | ')
+                );
+            }
+
+            return lines;
         };
 
         const lines = [
             'Switch Pro diagnostics',
             ...format_pages('live', 0),
             '',
-            ...format_pages('saved', 5),
+            ...format_pages('saved', 41),
             '',
             'raw=' + pages.map((page) => page.map((value) => '0x' + hex_word(value)).join(' ')).join(' | '),
         ];
