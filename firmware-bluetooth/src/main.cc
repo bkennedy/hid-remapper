@@ -655,10 +655,13 @@ static void switch_pro_rumble_decode_side(const uint8_t* side,
 
     // Convert log2 amplitude to linear [0, 1], then to [0, 255].
     // Threshold at -7.9375 (matches MissionControl's AmplitudeThreshold).
+    // exp2f gives linear [0,1]; apply x^1.5 to spread weak/strong apart and
+    // bring the overall level down so Xbox ERM motors don't feel uniformly heavy.
+    // x^1.5 at: 6%->1%, 25%->12%, 50%->35%, 100%->100%
     float lo_lin = (s->lo_amp >= -7.9375f) ? exp2f(s->lo_amp) : 0.0f;
     float hi_lin = (s->hi_amp >= -7.9375f) ? exp2f(s->hi_amp) : 0.0f;
-    *out_lf_amp = (uint8_t)(lo_lin * 255.0f);
-    *out_hf_amp = (uint8_t)(hi_lin * 255.0f);
+    *out_lf_amp = (uint8_t)(lo_lin * sqrtf(lo_lin) * 255.0f);
+    *out_hf_amp = (uint8_t)(hi_lin * sqrtf(hi_lin) * 255.0f);
 }
 
 static void switch_pro_rumble_write_cb(struct bt_hogp* hogp, struct bt_hogp_rep_info* rep, uint8_t err) {
