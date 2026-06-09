@@ -45,7 +45,7 @@ const uint8_t resolution_multiplier_masks[] = {
 };
 
 struct axis_aggregate_t {
-    int32_t default_value = 0;
+    int32_t default_values[8] = {};  // per-interface neutral; devices may have different logical ranges
     int32_t values[8] = {};
     uint32_t generations[8] = {};
     uint32_t generation = 0;
@@ -72,24 +72,23 @@ static int32_t axis_default_value(const usage_def_t& usage_def) {
 
 static int32_t aggregate_global_axis(uint32_t usage, int32_t value, int32_t default_value, uint8_t interface_idx) {
     axis_aggregate_t& aggregate = axis_aggregates[usage];
-    if (aggregate.generation == 0) {
-        aggregate.default_value = default_value;
-        for (int i = 0; i < 8; i++) {
-            aggregate.values[i] = default_value;
-        }
-    }
 
     if (interface_idx >= 8) {
         return value;
     }
 
+    aggregate.default_values[interface_idx] = default_value;
     aggregate.values[interface_idx] = value;
     aggregate.generations[interface_idx] = ++aggregate.generation;
 
-    int32_t newest_value = aggregate.default_value;
+    // Pick the most-recently-updated interface whose value is not at its own neutral.
+    // Each device may have a different logical range and thus a different scaled neutral,
+    // so we compare per-interface rather than against a single shared default.
+    int32_t newest_value = default_value;
     uint32_t newest_generation = 0;
     for (int i = 0; i < 8; i++) {
-        if ((aggregate.values[i] != aggregate.default_value) &&
+        if ((aggregate.generations[i] > 0) &&
+            (aggregate.values[i] != aggregate.default_values[i]) &&
             (aggregate.generations[i] >= newest_generation)) {
             newest_value = aggregate.values[i];
             newest_generation = aggregate.generations[i];
