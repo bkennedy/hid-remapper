@@ -455,33 +455,31 @@ static void switch_pro_spi_read(const uint8_t* args, uint8_t args_len) {
     switch_pro_queue_21(0x10, 0x90, data, MIN((uint8_t) sizeof(data), (uint8_t) (read_len + 5)));
 }
 
-static uint8_t switch_pro_rumble_side_strength(const uint8_t* side) {
-    static const uint8_t neutral[4] = { 0x00, 0x01, 0x40, 0x40 };
-    uint16_t diff = 0;
-
+// Decode one 4-byte Switch HD rumble side into separate low- and high-frequency
+// amplitudes.  Layout per dekuNukem/Nintendo_Switch_Reverse_Engineering:
+//   byte[0] bits[0:5] + byte[1] bit[0]  -> HF frequency (ignored here)
+//   byte[1] bits[1:7]                   -> HF amplitude (7-bit, 0-127); 0 = silence
+//   byte[2] bits[0:6]                   -> LF frequency (ignored here)
+//   byte[2] bit[7] + byte[3] bits[0:6]  -> LF amplitude (8-bit); 128 = silence
+// All-zero is the "no data" sentinel; neutral (silence) is {0x00,0x01,0x40,0x40}.
+static void switch_pro_rumble_decode_side(const uint8_t* side,
+                                          uint8_t* out_lf_amp,
+                                          uint8_t* out_hf_amp) {
     if (side[0] == 0 && side[1] == 0 && side[2] == 0 && side[3] == 0) {
-        return 0;
+        *out_lf_amp = 0;
+        *out_hf_amp = 0;
+        return;
     }
 
-    for (uint8_t i = 0; i < 4; i++) {
-        uint16_t delta = side[i] > neutral[i] ? side[i] - neutral[i] : neutral[i] - side[i];
-        if (delta > diff) {
-            diff = delta;
-        }
-    }
+    uint8_t hf_amp = (side[1] >> 1) & 0x7F;  // 0-127, 0 = silence
 
-    if (diff == 0) {
-        return 0;
-    }
+    // LF amplitude is an 8-bit field where 128 (0x80) = silence.
+    // Values above 128 represent actual vibration.
+    uint16_t lf_amp_raw = ((side[2] >> 7) & 0x01) | ((side[3] & 0x7F) << 1);
+    uint8_t lf_amp = (lf_amp_raw > 128) ? (uint8_t)((lf_amp_raw - 128) * 2) : 0;
 
-    uint16_t strength = diff * 4;
-    if (strength < 24) {
-        strength = 24;
-    }
-    if (strength > 255) {
-        strength = 255;
-    }
-    return strength;
+    *out_hf_amp = (uint16_t)hf_amp * 255 / 127;
+    *out_lf_amp = lf_amp;
 }
 
 static void switch_pro_rumble_write_cb(struct bt_hogp* hogp, struct bt_hogp_rep_info* rep, uint8_t err) {
@@ -512,10 +510,14 @@ static struct bt_hogp_rep_info* switch_pro_find_xbox_rumble_report(struct bt_hog
 }
 
 static void switch_pro_send_xbox_rumble(const uint8_t* switch_rumble) {
-    uint8_t left = switch_pro_rumble_side_strength(switch_rumble);
-    uint8_t right = switch_pro_rumble_side_strength(switch_rumble + 4);
-    uint8_t strong = left > right ? left : right;
-    uint8_t weak = left < right ? left : right;
+    uint8_t left_lf, left_hf, right_lf, right_hf;
+    switch_pro_rumble_decode_side(switch_rumble,     &left_lf,  &left_hf);
+    switch_pro_rumble_decode_side(switch_rumble + 4, &right_lf, &right_hf);
+
+    // Xbox Series X: strong motor = low-frequency, weak motor = high-frequency.
+    // Take the max across left and right for each band.
+    uint8_t strong = left_lf > right_lf ? left_lf : right_lf;
+    uint8_t weak   = left_hf > right_hf ? left_hf : right_hf;
     bool active = strong || weak;
     uint8_t payload[8] = {
         0x0f,  // enable all four Xbox rumble motors
