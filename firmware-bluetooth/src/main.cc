@@ -143,6 +143,12 @@ static uint32_t switch_pro_bt_disconnected_events = 0;
 static uint32_t switch_pro_hogp_ready_events = 0;
 static uint32_t switch_pro_conn_count_highwater = 0;
 static uint32_t switch_pro_last_disconnect_reason = 0;
+static uint32_t switch_pro_rumble_reports = 0;
+static uint32_t switch_pro_rumble_writes = 0;
+static uint32_t switch_pro_rumble_write_fails = 0;
+static uint32_t switch_pro_rumble_busy = 0;
+static uint8_t switch_pro_last_xbox_rumble[8] = {};
+static int64_t switch_pro_last_xbox_rumble_ms = 0;
 
 #define SWITCH_PRO_DIAG_PAGES 5
 #define SWITCH_PRO_DIAG_VALUES 7
@@ -449,6 +455,126 @@ static void switch_pro_spi_read(const uint8_t* args, uint8_t args_len) {
     switch_pro_queue_21(0x10, 0x90, data, MIN((uint8_t) sizeof(data), (uint8_t) (read_len + 5)));
 }
 
+static uint8_t switch_pro_rumble_side_strength(const uint8_t* side) {
+    static const uint8_t neutral[4] = { 0x00, 0x01, 0x40, 0x40 };
+    uint16_t diff = 0;
+
+    if (side[0] == 0 && side[1] == 0 && side[2] == 0 && side[3] == 0) {
+        return 0;
+    }
+
+    for (uint8_t i = 0; i < 4; i++) {
+        uint16_t delta = side[i] > neutral[i] ? side[i] - neutral[i] : neutral[i] - side[i];
+        if (delta > diff) {
+            diff = delta;
+        }
+    }
+
+    if (diff == 0) {
+        return 0;
+    }
+
+    uint16_t strength = diff * 4;
+    if (strength < 24) {
+        strength = 24;
+    }
+    if (strength > 255) {
+        strength = 255;
+    }
+    return strength;
+}
+
+static void switch_pro_rumble_write_cb(struct bt_hogp* hogp, struct bt_hogp_rep_info* rep, uint8_t err) {
+    if (err) {
+        switch_pro_rumble_write_fails++;
+        LOG_WRN("switch_pro rumble write callback err=%u", err);
+    }
+}
+
+static struct bt_hogp_rep_info* switch_pro_find_xbox_rumble_report(struct bt_hogp* hogp) {
+    struct bt_hogp_rep_info* rep = bt_hogp_rep_find(hogp, BT_HIDS_REPORT_TYPE_OUTPUT, 0x03);
+    if (rep != NULL) {
+        return rep;
+    }
+
+    struct bt_hogp_rep_info* only_output = NULL;
+    rep = NULL;
+    while (NULL != (rep = bt_hogp_rep_next(hogp, rep))) {
+        if (bt_hogp_rep_type(rep) != BT_HIDS_REPORT_TYPE_OUTPUT) {
+            continue;
+        }
+        if (only_output != NULL) {
+            return NULL;
+        }
+        only_output = rep;
+    }
+    return only_output;
+}
+
+static void switch_pro_send_xbox_rumble(const uint8_t* switch_rumble) {
+    uint8_t left = switch_pro_rumble_side_strength(switch_rumble);
+    uint8_t right = switch_pro_rumble_side_strength(switch_rumble + 4);
+    uint8_t strong = left > right ? left : right;
+    uint8_t weak = left < right ? left : right;
+    bool active = strong || weak;
+    uint8_t payload[8] = {
+        0x0f,  // enable all four Xbox rumble motors
+        0x00,
+        0x00,
+        strong,
+        weak,
+        0xff,
+        0x00,
+        0x01,
+    };
+    int64_t now = k_uptime_get();
+
+    switch_pro_rumble_reports++;
+    if (!memcmp(payload, switch_pro_last_xbox_rumble, sizeof(payload)) &&
+            (now - switch_pro_last_xbox_rumble_ms < (active ? 120 : 500))) {
+        return;
+    }
+
+    bool found = false;
+    for (uint8_t i = 0; i < CONFIG_BT_MAX_CONN; i++) {
+        if (!bt_hogp_ready_check(&hogps[i])) {
+            continue;
+        }
+
+        struct bt_hogp_rep_info* rep = switch_pro_find_xbox_rumble_report(&hogps[i]);
+        if (rep == NULL) {
+            continue;
+        }
+        found = true;
+
+        int err = bt_hogp_rep_write_wo_rsp(&hogps[i], rep, payload, sizeof(payload), switch_pro_rumble_write_cb);
+        if (!err) {
+            memcpy(switch_pro_last_xbox_rumble, payload, sizeof(payload));
+            switch_pro_last_xbox_rumble_ms = now;
+            switch_pro_rumble_writes++;
+            return;
+        }
+        if (err == -EBUSY) {
+            switch_pro_rumble_busy++;
+        } else {
+            switch_pro_rumble_write_fails++;
+        }
+    }
+
+    if (!found) {
+        switch_pro_rumble_write_fails++;
+    }
+}
+
+static void switch_pro_handle_rumble_report(const uint8_t* report, uint8_t len, bool has_report_id) {
+    uint8_t base = has_report_id ? 1 : 0;
+    if (len < base + 9) {
+        return;
+    }
+
+    switch_pro_send_xbox_rumble(report + base + 1);
+}
+
 static void switch_pro_handle_subcommand(const uint8_t* report, uint8_t len, bool has_report_id) {
     uint8_t base = has_report_id ? 1 : 0;
     if (len <= base + 9) {
@@ -526,7 +652,13 @@ static bool switch_pro_handle_output_report(const uint8_t* report, uint8_t len) 
     }
 
     if (report_id == 0x01) {
+        switch_pro_handle_rumble_report(report, len, has_report_id);
         switch_pro_handle_subcommand(report, len, has_report_id);
+        return true;
+    }
+
+    if (report_id == 0x10) {
+        switch_pro_handle_rumble_report(report, len, has_report_id);
         return true;
     }
 
@@ -615,6 +747,7 @@ static void switch_pro_fill_diagnostics(uint32_t page, uint32_t values[SWITCH_PR
             values[3] = switch_pro_axis_min[1] | (switch_pro_axis_max[1] << 16);
             values[4] = switch_pro_axis_min[2] | (switch_pro_axis_max[2] << 16);
             values[5] = switch_pro_axis_min[3] | (switch_pro_axis_max[3] << 16);
+            values[6] = (switch_pro_rumble_reports & 0xffff) | ((switch_pro_rumble_writes & 0xffff) << 16);
             break;
         default:
             break;
@@ -652,7 +785,7 @@ static void switch_pro_log_stats() {
     }
     switch_pro_last_stats_ms = now;
 
-    LOG_INF("switch_pro_stats enabled=%u report_q=%u/%u response_q=%u/%u out_q=%u out_overflows=%u ble=%u ble_drop=%u host=%u host_drop=%u set=%u translated=%u mapped=%u/%u heartbeat=%u/%u response=%u/%u response_drop=%u buttons=%02x %02x %02x",
+    LOG_INF("switch_pro_stats enabled=%u report_q=%u/%u response_q=%u/%u out_q=%u out_overflows=%u ble=%u ble_drop=%u host=%u host_drop=%u set=%u translated=%u mapped=%u/%u heartbeat=%u/%u response=%u/%u response_drop=%u rumble=%u/%u fail=%u busy=%u buttons=%02x %02x %02x",
         switch_pro_input_enabled,
         queue_depth(&report_q), switch_pro_report_q_highwater,
         queue_depth(&switch_pro_response_q), switch_pro_response_q_highwater,
@@ -665,6 +798,8 @@ static void switch_pro_log_stats() {
         switch_pro_heartbeat_writes, switch_pro_heartbeat_write_fails,
         switch_pro_response_writes, switch_pro_response_write_fails,
         switch_pro_response_drops,
+        switch_pro_rumble_reports, switch_pro_rumble_writes,
+        switch_pro_rumble_write_fails, switch_pro_rumble_busy,
         switch_pro_current_input[3], switch_pro_current_input[4], switch_pro_current_input[5]);
 
     switch_pro_persist_diagnostics();
