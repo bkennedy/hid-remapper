@@ -143,67 +143,15 @@ static uint32_t switch_pro_bt_disconnected_events = 0;
 static uint32_t switch_pro_hogp_ready_events = 0;
 static uint32_t switch_pro_conn_count_highwater = 0;
 static uint32_t switch_pro_last_disconnect_reason = 0;
-static uint32_t switch_pro_hb_left = 0;
-static uint32_t switch_pro_hb_up = 0;
-static uint32_t switch_pro_hb_right = 0;
-static uint32_t switch_pro_hb_down = 0;
-static uint32_t switch_pro_hb_left_run = 0;
-static uint32_t switch_pro_hb_left_run_max = 0;
-static uint32_t switch_pro_hb_up_run = 0;
-static uint32_t switch_pro_hb_up_run_max = 0;
-static uint32_t switch_pro_hb_last_left = 0x00800800;
-static uint32_t switch_pro_source_meta = 0;
-static uint32_t switch_pro_source_words[4] = {};
-static uint32_t switch_pro_source_ms = 0;
-static bool switch_pro_snap_latched = false;
-static bool switch_pro_snap_save_pending = false;
-static uint32_t switch_pro_last_trace_flags = 0;
-static uint32_t switch_pro_up_snap_candidates = 0;
 
-#define SWITCH_PRO_TRACE_FRAMES 8
-#define SWITCH_PRO_EXTREME_FRAMES 4
-#define SWITCH_PRO_SOURCE_TRACE_FRAMES 8
-#define SWITCH_PRO_PARSED_AXIS_HISTORY_PAGES 8
-#define SWITCH_PRO_DIAG_BASE_PAGES 21
-#define SWITCH_PRO_DIAG_PAGES (SWITCH_PRO_DIAG_BASE_PAGES + SWITCH_PRO_TRACE_FRAMES + SWITCH_PRO_EXTREME_FRAMES + SWITCH_PRO_SOURCE_TRACE_FRAMES)
+#define SWITCH_PRO_DIAG_PAGES 5
 #define SWITCH_PRO_DIAG_VALUES 7
-
-struct switch_pro_trace_frame_t {
-    uint32_t seq;
-    uint16_t raw_lx;
-    uint16_t raw_ly;
-    uint16_t norm_lx;
-    uint16_t norm_ly;
-    uint16_t final_lx;
-    uint16_t final_ly;
-    uint32_t out_left;
-    uint32_t flags;
-};
-
-struct switch_pro_source_trace_frame_t {
-    uint32_t seq;
-    uint32_t meta;
-    uint32_t words[4];
-    uint32_t ms;
-};
 
 static uint32_t switch_pro_saved_diag[SWITCH_PRO_DIAG_PAGES][SWITCH_PRO_DIAG_VALUES];
 static int64_t switch_pro_last_diag_persist_ms = 0;
 static uint16_t switch_pro_axis_last[4] = { 0x8000, 0x8000, 0x8000, 0x8000 };
 static uint16_t switch_pro_axis_min[4] = { 0xffff, 0xffff, 0xffff, 0xffff };
 static uint16_t switch_pro_axis_max[4] = { 0, 0, 0, 0 };
-static uint32_t switch_pro_output_stick_last[2] = { 0x00800800, 0x00800800 };
-static uint8_t switch_pro_output_stick_min[2][3] = { { 0xff, 0xff, 0xff }, { 0xff, 0xff, 0xff } };
-static uint8_t switch_pro_output_stick_max[2][3] = { { 0, 0, 0 }, { 0, 0, 0 } };
-static switch_pro_trace_frame_t switch_pro_trace[SWITCH_PRO_TRACE_FRAMES];
-static switch_pro_trace_frame_t switch_pro_extreme[SWITCH_PRO_EXTREME_FRAMES];
-static uint32_t switch_pro_trace_seq = 0;
-static uint8_t switch_pro_trace_write = 0;
-static switch_pro_source_trace_frame_t switch_pro_source_trace[SWITCH_PRO_SOURCE_TRACE_FRAMES];
-static uint32_t switch_pro_source_trace_seq = 0;
-static uint8_t switch_pro_source_trace_write = 0;
-
-static void switch_pro_capture_saved_diagnostics();
 
 static bool is_switch_pro_mode() {
     return our_descriptor_number == 6;
@@ -229,35 +177,6 @@ static void switch_pro_reset_axis_diagnostics() {
         switch_pro_axis_min[axis] = 0xffff;
         switch_pro_axis_max[axis] = 0;
     }
-    for (uint8_t stick = 0; stick < 2; stick++) {
-        switch_pro_output_stick_last[stick] = 0x00800800;
-        for (uint8_t byte = 0; byte < 3; byte++) {
-            switch_pro_output_stick_min[stick][byte] = 0xff;
-            switch_pro_output_stick_max[stick][byte] = 0;
-        }
-    }
-    switch_pro_hb_left = 0;
-    switch_pro_hb_up = 0;
-    switch_pro_hb_right = 0;
-    switch_pro_hb_down = 0;
-    switch_pro_hb_left_run = 0;
-    switch_pro_hb_left_run_max = 0;
-    switch_pro_hb_up_run = 0;
-    switch_pro_hb_up_run_max = 0;
-    switch_pro_hb_last_left = 0x00800800;
-    switch_pro_source_meta = 0;
-    memset(switch_pro_source_words, 0, sizeof(switch_pro_source_words));
-    switch_pro_source_ms = 0;
-    memset(switch_pro_trace, 0, sizeof(switch_pro_trace));
-    memset(switch_pro_extreme, 0, sizeof(switch_pro_extreme));
-    memset(switch_pro_source_trace, 0, sizeof(switch_pro_source_trace));
-    switch_pro_trace_seq = 0;
-    switch_pro_trace_write = 0;
-    switch_pro_source_trace_seq = 0;
-    switch_pro_source_trace_write = 0;
-    switch_pro_snap_latched = false;
-    switch_pro_snap_save_pending = false;
-    switch_pro_last_trace_flags = 0;
 }
 
 static void switch_pro_reset_session() {
@@ -329,7 +248,7 @@ static uint16_t switch_pro_normalize_axis(uint16_t value, bool invert) {
 
 static uint16_t switch_pro_axis_from_state_or_report(uint32_t usage, uint16_t report_value) {
     bool found = false;
-    int32_t value = debug_input_state(usage, 0, false, &found);
+    int32_t value = get_input_state_value(usage, 0, false, &found);
     if (!found) {
         return report_value;
     }
@@ -367,9 +286,8 @@ static uint16_t switch_pro_clamp_axis_range(uint16_t value) {
 
 static void pack_switch_pro_stick(uint8_t* out, uint16_t x16, uint16_t y16) {
     /*
-     * Report 0x30 uses packed 12-bit stick positions. This matches the
-     * wired capture in the GBATemp thread: report, timer, status, buttons,
-     * then two 3-byte stick fields.
+     * Report 0x30 uses packed 12-bit stick positions. Values passed here are
+     * normalized to the 16-bit HID Remapper output range.
      */
     x16 = switch_pro_clamp_axis_range(x16);
     y16 = switch_pro_clamp_axis_range(y16);
@@ -379,151 +297,6 @@ static void pack_switch_pro_stick(uint8_t* out, uint16_t x16, uint16_t y16) {
     out[0] = x & 0xff;
     out[1] = ((x >> 8) & 0x0f) | ((y & 0x0f) << 4);
     out[2] = (y >> 4) & 0xff;
-}
-
-static void switch_pro_note_output_stick(uint8_t stick, const uint8_t* bytes) {
-    switch_pro_output_stick_last[stick] = bytes[0] | (bytes[1] << 8) | (bytes[2] << 16);
-    for (uint8_t byte = 0; byte < 3; byte++) {
-        if (bytes[byte] < switch_pro_output_stick_min[stick][byte]) {
-            switch_pro_output_stick_min[stick][byte] = bytes[byte];
-        }
-        if (bytes[byte] > switch_pro_output_stick_max[stick][byte]) {
-            switch_pro_output_stick_max[stick][byte] = bytes[byte];
-        }
-    }
-}
-
-static void switch_pro_note_trace(uint16_t raw_lx, uint16_t raw_ly, uint16_t norm_lx, uint16_t norm_ly,
-    uint16_t final_lx, uint16_t final_ly, const uint8_t* out_left, uint32_t flags) {
-    switch_pro_trace_frame_t* frame = &switch_pro_trace[switch_pro_trace_write];
-    frame->seq = ++switch_pro_trace_seq;
-    frame->raw_lx = raw_lx;
-    frame->raw_ly = raw_ly;
-    frame->norm_lx = norm_lx;
-    frame->norm_ly = norm_ly;
-    frame->final_lx = final_lx;
-    frame->final_ly = final_ly;
-    frame->out_left = out_left[0] | (out_left[1] << 8) | (out_left[2] << 16);
-    frame->flags = flags;
-
-    if (switch_pro_extreme[0].seq == 0 || frame->norm_lx < switch_pro_extreme[0].norm_lx) {
-        switch_pro_extreme[0] = *frame;
-    }
-    if (switch_pro_extreme[1].seq == 0 || frame->norm_lx > switch_pro_extreme[1].norm_lx) {
-        switch_pro_extreme[1] = *frame;
-    }
-    if (switch_pro_extreme[2].seq == 0 || frame->norm_ly > switch_pro_extreme[2].norm_ly) {
-        switch_pro_extreme[2] = *frame;
-    }
-    if (switch_pro_extreme[3].seq == 0 || frame->norm_ly < switch_pro_extreme[3].norm_ly) {
-        switch_pro_extreme[3] = *frame;
-    }
-
-    switch_pro_trace_write = (switch_pro_trace_write + 1) % SWITCH_PRO_TRACE_FRAMES;
-
-    bool was_up = (switch_pro_last_trace_flags & BIT(2)) != 0;
-    bool is_up = (flags & BIT(2)) != 0;
-    bool state_found = false;
-    int32_t source_y = debug_input_state(0x00010031, 0, false, &state_found);
-    bool source_still_up = state_found && source_y <= 16;
-    bool real_input_seen = switch_pro_input_enabled &&
-        (switch_pro_ble_reports > 8) &&
-        (switch_pro_source_ms != 0) &&
-        (switch_pro_translated_reports > 8);
-    if (real_input_seen && was_up && !is_up) {
-        switch_pro_up_snap_candidates++;
-    }
-    if (!switch_pro_snap_latched && real_input_seen && was_up && !is_up && source_still_up) {
-        switch_pro_snap_latched = true;
-        switch_pro_snap_save_pending = true;
-        switch_pro_capture_saved_diagnostics();
-        LOG_INF("switch_pro_snap_latched seq=%u raw=%04x,%04x norm=%04x,%04x out=%06x flags=0x%08x source_y=%d",
-            frame->seq, frame->raw_lx, frame->raw_ly, frame->norm_lx, frame->norm_ly, frame->out_left, frame->flags, source_y);
-    }
-    switch_pro_last_trace_flags = flags;
-}
-
-static uint16_t unpack_switch_pro_x(const uint8_t* bytes) {
-    return bytes[0] | ((bytes[1] & 0x0f) << 8);
-}
-
-static uint16_t unpack_switch_pro_y(const uint8_t* bytes) {
-    return ((bytes[1] >> 4) & 0x0f) | (bytes[2] << 4);
-}
-
-static void switch_pro_note_heartbeat_output() {
-    const uint8_t* left = switch_pro_current_input + 6;
-    uint16_t x = unpack_switch_pro_x(left);
-    uint16_t y = unpack_switch_pro_y(left);
-    bool left_active = x <= 0x500;
-    bool right_active = x >= 0xb00;
-    bool up_active = y >= 0xb00;
-    bool down_active = y <= 0x500;
-
-    switch_pro_hb_last_left = left[0] | (left[1] << 8) | (left[2] << 16);
-    if (left_active) {
-        switch_pro_hb_left++;
-        switch_pro_hb_left_run++;
-        if (switch_pro_hb_left_run > switch_pro_hb_left_run_max) {
-            switch_pro_hb_left_run_max = switch_pro_hb_left_run;
-        }
-    } else {
-        switch_pro_hb_left_run = 0;
-    }
-    if (up_active) {
-        switch_pro_hb_up++;
-        switch_pro_hb_up_run++;
-        if (switch_pro_hb_up_run > switch_pro_hb_up_run_max) {
-            switch_pro_hb_up_run_max = switch_pro_hb_up_run;
-        }
-    } else {
-        switch_pro_hb_up_run = 0;
-    }
-    if (right_active) {
-        switch_pro_hb_right++;
-    }
-    if (down_active) {
-        switch_pro_hb_down++;
-    }
-}
-
-static void switch_pro_note_source_report(uint16_t interface, uint8_t report_id, uint8_t len, const uint8_t* data) {
-    switch_pro_source_meta = (interface & 0xffff) | ((uint32_t) report_id << 16) | ((uint32_t) len << 24);
-    memset(switch_pro_source_words, 0, sizeof(switch_pro_source_words));
-    for (uint8_t i = 0; i < MIN(len, (uint8_t) 16); i++) {
-        switch_pro_source_words[i / 4] |= (uint32_t) data[i] << (8 * (i % 4));
-    }
-    switch_pro_source_ms = k_uptime_get_32();
-
-    switch_pro_source_trace_frame_t* frame = &switch_pro_source_trace[switch_pro_source_trace_write];
-    frame->seq = ++switch_pro_source_trace_seq;
-    frame->meta = switch_pro_source_meta;
-    memcpy(frame->words, switch_pro_source_words, sizeof(frame->words));
-    frame->ms = switch_pro_source_ms;
-    switch_pro_source_trace_write = (switch_pro_source_trace_write + 1) % SWITCH_PRO_SOURCE_TRACE_FRAMES;
-
-    LOG_INF("switch_pro_source seq=%u iface=0x%04x rid=0x%02x len=%u data=%08x %08x %08x %08x",
-        frame->seq, interface, report_id, len, frame->words[0], frame->words[1], frame->words[2], frame->words[3]);
-}
-
-static uint32_t switch_pro_output_direction_flags(const uint8_t* left) {
-    uint16_t x = unpack_switch_pro_x(left);
-    uint16_t y = unpack_switch_pro_y(left);
-    uint32_t flags = 0;
-
-    if (x <= 0x500) {
-        flags |= BIT(0);  // left
-    }
-    if (x >= 0xb00) {
-        flags |= BIT(1);  // right
-    }
-    if (y >= 0xb00) {
-        flags |= BIT(2);  // up/forward after source Y inversion
-    }
-    if (y <= 0x500) {
-        flags |= BIT(3);  // down/back
-    }
-    return flags;
 }
 
 static void apply_switch_pro_hat(uint8_t hat, uint8_t* buttons2) {
@@ -574,10 +347,10 @@ static void switch_pro_translate_report(const uint8_t* report_with_id, uint8_t l
     if (report_button_pressed(report_with_id, 7)) next[5] |= BIT(7);   // ZL
 
     apply_switch_pro_hat(report_with_id[11] & 0x0f, &next[5]);
-    uint16_t raw_lx = switch_pro_axis_from_state_or_report(0x00010030, report_axis_16(report_with_id, 3));
-    uint16_t raw_ly = switch_pro_axis_from_state_or_report(0x00010031, report_axis_16(report_with_id, 5));
-    uint16_t lx = switch_pro_normalize_axis(raw_lx, false);
-    uint16_t ly = switch_pro_normalize_axis(raw_ly, true);
+    uint16_t lx = switch_pro_normalize_axis(
+        switch_pro_axis_from_state_or_report(0x00010030, report_axis_16(report_with_id, 3)), false);
+    uint16_t ly = switch_pro_normalize_axis(
+        switch_pro_axis_from_state_or_report(0x00010031, report_axis_16(report_with_id, 5)), true);
     uint16_t rx = switch_pro_normalize_axis(
         switch_pro_axis_from_state_or_report(0x00010032, report_axis_16(report_with_id, 7)), false);
     uint16_t ry = switch_pro_normalize_axis(
@@ -586,15 +359,8 @@ static void switch_pro_translate_report(const uint8_t* report_with_id, uint8_t l
     switch_pro_note_axis(1, ly);
     switch_pro_note_axis(2, rx);
     switch_pro_note_axis(3, ry);
-    uint16_t norm_lx = lx;
-    uint16_t norm_ly = ly;
     pack_switch_pro_stick(next + 6, lx, ly);
     pack_switch_pro_stick(next + 9, rx, ry);
-    uint32_t trace_flags = switch_pro_output_direction_flags(next + 6);
-    switch_pro_note_output_stick(0, next + 6);
-    switch_pro_note_output_stick(1, next + 9);
-    switch_pro_note_trace(raw_lx, raw_ly, norm_lx, norm_ly, lx, ly, next + 6, trace_flags);
-
     next[12] = 0x0c;
 
     bool buttons_changed = next[3] != switch_pro_current_input[3] || next[4] != switch_pro_current_input[4] || next[5] != switch_pro_current_input[5];
@@ -663,47 +429,21 @@ static void switch_pro_spi_read(const uint8_t* args, uint8_t args_len) {
     uint8_t read_len = args[4];
     memcpy(data, args, 5);
 
-    /*
-     * Switch stick calibration is three packed 12-bit pairs per stick. For
-     * the left stick the groups are max-above-center, center, min-below-center;
-     * for the right stick they are center, min-below-center, max-above-center.
-     * Use center 0x800 and +/-0x600 travel so held low-side directions are
-     * inside the advertised calibrated range.
-     */
-    static const uint8_t left_stick_cal[] = {
-        0x00, 0x06, 0x60,  // X/Y max above center: 0x600, 0x600
-        0x00, 0x08, 0x80,  // X/Y center: 0x800, 0x800
-        0x00, 0x06, 0x60,  // X/Y min below center: 0x600, 0x600
-    };
-    static const uint8_t right_stick_cal[] = {
-        0x00, 0x08, 0x80,  // X/Y center: 0x800, 0x800
-        0x00, 0x06, 0x60,  // X/Y min below center: 0x600, 0x600
-        0x00, 0x06, 0x60,  // X/Y max above center: 0x600, 0x600
-    };
-    static const uint8_t stick_params[] = {
-        0x19, 0xd0, 0x4c, 0xae, 0x40, 0xe1,
-        0xee, 0xe2, 0x2e, 0xee, 0xe2, 0x2e,
-        0xb4, 0x4a, 0xab, 0x96, 0x64, 0x49,
+    static const uint8_t stick_cal[] = {
+        0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00,
+        0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80
     };
     static const uint8_t body_color[] = { 0x46, 0x46, 0x46 };
     static const uint8_t button_color[] = { 0xff, 0xff, 0xff };
-    static const uint8_t grip_color[] = { 0x46, 0x46, 0x46 };
 
     if (address == 0x0000603d) {
-        uint8_t stick_cal[sizeof(left_stick_cal) + sizeof(right_stick_cal)];
-        memcpy(stick_cal, left_stick_cal, sizeof(left_stick_cal));
-        memcpy(stick_cal + sizeof(left_stick_cal), right_stick_cal, sizeof(right_stick_cal));
         memcpy(data + 5, stick_cal, MIN(read_len, (uint8_t) sizeof(stick_cal)));
-    } else if (address == 0x00006046) {
-        memcpy(data + 5, right_stick_cal, MIN(read_len, (uint8_t) sizeof(right_stick_cal)));
     } else if (address == 0x00006050) {
+        memcpy(data + 5, stick_cal, MIN(read_len, (uint8_t) sizeof(stick_cal)));
+    } else if (address == 0x00006086) {
         memcpy(data + 5, body_color, MIN(read_len, (uint8_t) sizeof(body_color)));
-    } else if (address == 0x00006053) {
+    } else if (address == 0x00006089) {
         memcpy(data + 5, button_color, MIN(read_len, (uint8_t) sizeof(button_color)));
-    } else if (address == 0x00006056 || address == 0x00006059) {
-        memcpy(data + 5, grip_color, MIN(read_len, (uint8_t) sizeof(grip_color)));
-    } else if (address == 0x00006086 || address == 0x00006098) {
-        memcpy(data + 5, stick_params, MIN(read_len, (uint8_t) sizeof(stick_params)));
     }
 
     switch_pro_queue_21(0x10, 0x90, data, MIN((uint8_t) sizeof(data), (uint8_t) (read_len + 5)));
@@ -822,7 +562,6 @@ static bool switch_pro_send_input_heartbeat() {
     bool sent = CHK(hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL));
     if (sent) {
         switch_pro_heartbeat_writes++;
-        switch_pro_note_heartbeat_output();
     } else {
         switch_pro_heartbeat_write_fails++;
     }
@@ -831,7 +570,6 @@ static bool switch_pro_send_input_heartbeat() {
 
 static void switch_pro_fill_diagnostics(uint32_t page, uint32_t values[SWITCH_PRO_DIAG_VALUES]) {
     memset(values, 0, SWITCH_PRO_DIAG_VALUES * sizeof(uint32_t));
-    static const uint32_t axis_usages[4] = { 0x00010030, 0x00010031, 0x00010032, 0x00010035 };
 
     switch (page) {
         case 0:
@@ -878,112 +616,8 @@ static void switch_pro_fill_diagnostics(uint32_t page, uint32_t values[SWITCH_PR
             values[4] = switch_pro_axis_min[2] | (switch_pro_axis_max[2] << 16);
             values[5] = switch_pro_axis_min[3] | (switch_pro_axis_max[3] << 16);
             break;
-        case 5:
-            values[0] = switch_pro_output_stick_last[0];
-            values[1] = switch_pro_output_stick_last[1];
-            values[2] = switch_pro_output_stick_min[0][0] | (switch_pro_output_stick_max[0][0] << 8) |
-                (switch_pro_output_stick_min[0][1] << 16) | (switch_pro_output_stick_max[0][1] << 24);
-            values[3] = switch_pro_output_stick_min[0][2] | (switch_pro_output_stick_max[0][2] << 8) |
-                (switch_pro_output_stick_min[1][0] << 16) | (switch_pro_output_stick_max[1][0] << 24);
-            values[4] = switch_pro_output_stick_min[1][1] | (switch_pro_output_stick_max[1][1] << 8) |
-                (switch_pro_output_stick_min[1][2] << 16) | (switch_pro_output_stick_max[1][2] << 24);
-            break;
-        case 6:
-            values[0] = switch_pro_hb_left;
-            values[1] = switch_pro_hb_up;
-            values[2] = switch_pro_hb_right;
-            values[3] = switch_pro_hb_down;
-            values[4] = switch_pro_hb_left_run | (switch_pro_hb_left_run_max << 16);
-            values[5] = switch_pro_hb_up_run | (switch_pro_hb_up_run_max << 16);
-            values[6] = switch_pro_hb_last_left;
-            break;
-        case 7:
-            values[0] = switch_pro_source_meta;
-            values[1] = switch_pro_source_words[0];
-            values[2] = switch_pro_source_words[1];
-            values[3] = switch_pro_source_words[2];
-            values[4] = switch_pro_source_words[3];
-            values[5] = switch_pro_source_ms;
-            values[6] = switch_pro_up_snap_candidates;
-            break;
-        case 8:
-            for (uint8_t i = 0; i < 4; i++) {
-                bool scaled_found = false;
-                bool raw_found = false;
-                int32_t scaled = debug_input_state(axis_usages[i], 0, false, &scaled_found);
-                int32_t raw = debug_input_state(axis_usages[i], 0, true, &raw_found);
-                values[i] = ((uint32_t) (uint16_t) raw << 16) | (uint16_t) scaled;
-                if (scaled_found) {
-                    values[4] |= BIT(i);
-                }
-                if (raw_found) {
-                    values[4] |= BIT(i + 8);
-                }
-            }
-            break;
-        case 9:
-            debug_parsed_input(axis_usages[0], values);
-            break;
-        case 10:
-            debug_parsed_input(axis_usages[1], values);
-            break;
-        case 11:
-            debug_parsed_input(axis_usages[2], values);
-            break;
-        case 12:
-            debug_parsed_input(axis_usages[3], values);
-            break;
         default:
-            if (page >= 13 && page < 13 + SWITCH_PRO_PARSED_AXIS_HISTORY_PAGES) {
-                debug_parsed_axis_history(1, page - 13, values);
-                break;
-            }
-            if (page >= SWITCH_PRO_DIAG_BASE_PAGES && page < SWITCH_PRO_DIAG_PAGES) {
-                uint32_t trace_age = page - SWITCH_PRO_DIAG_BASE_PAGES;
-                if (trace_age < SWITCH_PRO_TRACE_FRAMES) {
-                    const switch_pro_trace_frame_t* frame;
-                    uint8_t trace_idx = (switch_pro_trace_write + SWITCH_PRO_TRACE_FRAMES - 1 - trace_age) % SWITCH_PRO_TRACE_FRAMES;
-                    frame = &switch_pro_trace[trace_idx];
-                    values[0] = frame->seq;
-                    values[1] = frame->raw_lx | (frame->raw_ly << 16);
-                    values[2] = frame->norm_lx | (frame->norm_ly << 16);
-                    values[3] = frame->final_lx | (frame->final_ly << 16);
-                    values[4] = frame->out_left;
-                    values[5] = frame->flags;
-                    values[6] = trace_age;
-                } else if (trace_age < SWITCH_PRO_TRACE_FRAMES + SWITCH_PRO_EXTREME_FRAMES) {
-                    const switch_pro_trace_frame_t* frame;
-                    frame = &switch_pro_extreme[trace_age - SWITCH_PRO_TRACE_FRAMES];
-                    values[0] = frame->seq;
-                    values[1] = frame->raw_lx | (frame->raw_ly << 16);
-                    values[2] = frame->norm_lx | (frame->norm_ly << 16);
-                    values[3] = frame->final_lx | (frame->final_ly << 16);
-                    values[4] = frame->out_left;
-                    values[5] = frame->flags;
-                    values[6] = trace_age;
-                } else {
-                    uint32_t source_age = trace_age - SWITCH_PRO_TRACE_FRAMES - SWITCH_PRO_EXTREME_FRAMES;
-                    if (source_age < SWITCH_PRO_SOURCE_TRACE_FRAMES) {
-                        const switch_pro_source_trace_frame_t* frame;
-                        uint8_t trace_idx = (switch_pro_source_trace_write + SWITCH_PRO_SOURCE_TRACE_FRAMES - 1 - source_age) % SWITCH_PRO_SOURCE_TRACE_FRAMES;
-                        frame = &switch_pro_source_trace[trace_idx];
-                        values[0] = frame->seq;
-                        values[1] = frame->meta;
-                        values[2] = frame->words[0];
-                        values[3] = frame->words[1];
-                        values[4] = frame->words[2];
-                        values[5] = frame->words[3];
-                        values[6] = frame->ms;
-                    }
-                }
-            }
             break;
-    }
-}
-
-static void switch_pro_capture_saved_diagnostics() {
-    for (uint32_t page = 0; page < SWITCH_PRO_DIAG_PAGES; page++) {
-        switch_pro_fill_diagnostics(page, switch_pro_saved_diag[page]);
     }
 }
 
@@ -996,21 +630,14 @@ static void switch_pro_persist_diagnostics() {
     }
 
     int64_t now = k_uptime_get();
-    if (switch_pro_snap_save_pending) {
-        switch_pro_last_diag_persist_ms = now;
-        switch_pro_snap_save_pending = false;
-        settings_save_one("remapper/switch_pro_diag", switch_pro_saved_diag, sizeof(switch_pro_saved_diag));
-        return;
-    }
-    if (switch_pro_snap_latched) {
-        return;
-    }
     if (switch_pro_last_diag_persist_ms && (now - switch_pro_last_diag_persist_ms < 2000)) {
         return;
     }
     switch_pro_last_diag_persist_ms = now;
 
-    switch_pro_capture_saved_diagnostics();
+    for (uint32_t page = 0; page < SWITCH_PRO_DIAG_PAGES; page++) {
+        switch_pro_fill_diagnostics(page, switch_pro_saved_diag[page]);
+    }
     settings_save_one("remapper/switch_pro_diag", switch_pro_saved_diag, sizeof(switch_pro_saved_diag));
 }
 
@@ -1448,10 +1075,7 @@ static uint8_t hogp_notify_cb(struct bt_hogp* hogp, struct bt_hogp_rep_info* rep
     buf.len = bt_hogp_rep_size(rep) + 1;
     buf.data[0] = bt_hogp_rep_id(rep);
 
-    memcpy(buf.data + 1, data, buf.len - 1);
-    if (is_switch_pro_mode()) {
-        switch_pro_note_source_report(buf.interface, buf.data[0], buf.len, buf.data);
-    }
+    memcpy(buf.data + 1, data, buf.len);
     if (k_msgq_put(&report_q, &buf, K_NO_WAIT)) {
         if (is_switch_pro_mode()) {
             switch_pro_ble_report_drops++;
@@ -1793,16 +1417,15 @@ static int remapper_settings_set(const char* name, size_t len, settings_read_cb 
     LOG_INF("%s len=%d", name, len);
 
     if (!strcmp(name, "switch_pro_diag")) {
-        if (len > sizeof(switch_pro_saved_diag) || (len % (SWITCH_PRO_DIAG_VALUES * sizeof(uint32_t))) != 0) {
+        if (len != sizeof(switch_pro_saved_diag)) {
             return -EINVAL;
         }
 
-        memset(switch_pro_saved_diag, 0, sizeof(switch_pro_saved_diag));
         int bytes_read = read_cb(cb_arg, switch_pro_saved_diag, len);
         if (bytes_read < 0) {
             return bytes_read;
         }
-        return bytes_read == (int) len ? 0 : -EINVAL;
+        return bytes_read == sizeof(switch_pro_saved_diag) ? 0 : -EINVAL;
     }
 
     if (strcmp(name, "config")) {
