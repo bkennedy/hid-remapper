@@ -1,4 +1,5 @@
 #include <errno.h>
+#include <math.h>
 #include <stddef.h>
 #include <string.h>
 
@@ -455,31 +456,209 @@ static void switch_pro_spi_read(const uint8_t* args, uint8_t args_len) {
     switch_pro_queue_21(0x10, 0x90, data, MIN((uint8_t) sizeof(data), (uint8_t) (read_len + 5)));
 }
 
-// Decode one 4-byte Switch HD rumble side into separate low- and high-frequency
-// amplitudes.  Layout per dekuNukem/Nintendo_Switch_Reverse_Engineering:
-//   byte[0] bits[0:5] + byte[1] bit[0]  -> HF frequency (ignored here)
-//   byte[1] bits[1:7]                   -> HF amplitude (7-bit, 0-127); 0 = silence
-//   byte[2] bits[0:6]                   -> LF frequency (ignored here)
-//   byte[2] bit[7] + byte[3] bits[0:6]  -> LF amplitude (8-bit); 128 = silence
-// All-zero is the "no data" sentinel; neutral (silence) is {0x00,0x01,0x40,0x40}.
+// ---- Switch HD rumble stateful decoder (ported from ndeadly/MissionControl) ----
+//
+// The Switch sends 4-byte rumble packets per side as a packed 32-bit LE word.
+// Bits [31:30] select one of four packet formats; each format encodes up to
+// three amplitude+frequency samples for the LO (160 Hz) and HI (320 Hz) bands.
+// Amplitude is in log2 space [-8, 0], where -8 ≈ silence and 0 = full scale.
+
+struct SwitchRumbleState {
+    float lo_amp;   // log2 amplitude LO band, [-8, 0], -8 = silence
+    float lo_freq;  // log2 frequency LO band, [-2, 2], 0 = 160 Hz
+    float hi_amp;
+    float hi_freq;
+};
+
+// [0]=left, [1]=right
+static SwitchRumbleState switch_pro_rumble_state[2] = {
+    { -8.0f, 0.0f, -8.0f, 0.0f },
+    { -8.0f, 0.0f, -8.0f, 0.0f },
+};
+
+static float srumble_am7(uint8_t idx) {
+    if (idx == 0)   return -8.0f;
+    if (idx < 16)   return 0.25f    * idx - 7.75f;
+    if (idx < 32)   return 0.0625f  * idx - 4.9375f;
+    return           0.03125f * idx - 3.96875f;
+}
+
+static float srumble_fm7(uint8_t idx) {
+    return 0.03125f * idx - 2.0f;
+}
+
+static float srumble_clampf(float v, float lo, float hi) {
+    return v < lo ? lo : (v > hi ? hi : v);
+}
+
+// Actions: 0=ignore, 1=default, 2=substitute(offset), 3=sum+clamp
+struct SRumbleCmd { uint8_t am; uint8_t fm; float am_off; float fm_off; };
+static const SRumbleCmd srumble_cmd[32] = {
+    { 1, 1,  0.0f,      0.0f      },  //  0 default/default
+    { 2, 0,  0.0f,      0.0f      },  //  1 sub lo-amp
+    { 2, 0, -0.5f,      0.0f      },  //  2
+    { 2, 0, -1.0f,      0.0f      },  //  3
+    { 2, 0, -1.5f,      0.0f      },  //  4
+    { 2, 0, -2.0f,      0.0f      },  //  5
+    { 2, 0, -2.5f,      0.0f      },  //  6
+    { 2, 0, -3.0f,      0.0f      },  //  7
+    { 2, 0, -3.5f,      0.0f      },  //  8
+    { 2, 0, -4.0f,      0.0f      },  //  9
+    { 2, 0, -4.5f,      0.0f      },  // 10
+    { 2, 0, -5.0f,      0.0f      },  // 11
+    { 0, 2,  0.0f,     -0.375f    },  // 12 sub hi-freq
+    { 0, 2,  0.0f,     -0.1875f   },  // 13
+    { 0, 2,  0.0f,      0.0f      },  // 14
+    { 0, 2,  0.0f,      0.1875f   },  // 15
+    { 0, 2,  0.0f,      0.375f    },  // 16
+    { 3, 3,  0.125f,    0.03125f  },  // 17 sum both
+    { 3, 0,  0.125f,    0.0f      },  // 18
+    { 3, 3,  0.125f,   -0.03125f  },  // 19
+    { 3, 3,  0.03125f,  0.03125f  },  // 20
+    { 3, 0,  0.03125f,  0.0f      },  // 21
+    { 3, 3,  0.03125f, -0.03125f  },  // 22
+    { 0, 3,  0.0f,      0.03125f  },  // 23
+    { 0, 0,  0.0f,      0.0f      },  // 24 ignore/ignore
+    { 0, 3,  0.0f,     -0.03125f  },  // 25
+    { 3, 3, -0.03125f,  0.03125f  },  // 26
+    { 3, 0, -0.03125f,  0.0f      },  // 27
+    { 3, 3, -0.03125f, -0.03125f  },  // 28
+    { 3, 3, -0.125f,    0.03125f  },  // 29
+    { 3, 0, -0.125f,    0.0f      },  // 30
+    { 3, 3, -0.125f,   -0.03125f  },  // 31
+};
+
+static float srumble_apply(uint8_t action, float offset, float cur, float def, float lo, float hi) {
+    switch (action) {
+        case 2: return offset;
+        case 3: return srumble_clampf(cur + offset, lo, hi);
+        case 1: return def;
+        default: return cur;
+    }
+}
+
+static void srumble_apply_lo(uint8_t code, SwitchRumbleState* s) {
+    const SRumbleCmd* c = &srumble_cmd[code & 0x1F];
+    s->lo_amp  = srumble_apply(c->am, c->am_off, s->lo_amp,  -8.0f, -8.0f, 0.0f);
+    s->lo_freq = srumble_apply(c->fm, c->fm_off, s->lo_freq,  0.0f, -2.0f, 2.0f);
+}
+
+static void srumble_apply_hi(uint8_t code, SwitchRumbleState* s) {
+    const SRumbleCmd* c = &srumble_cmd[code & 0x1F];
+    s->hi_amp  = srumble_apply(c->am, c->am_off, s->hi_amp,  -8.0f, -8.0f, 0.0f);
+    s->hi_freq = srumble_apply(c->fm, c->fm_off, s->hi_freq,  0.0f, -2.0f, 2.0f);
+}
+
+// Decode 4-byte Switch rumble side packet into the per-side state, then
+// return lo/hi amplitudes scaled to [0, 255] for the Xbox motors.
 static void switch_pro_rumble_decode_side(const uint8_t* side,
+                                          SwitchRumbleState* s,
                                           uint8_t* out_lf_amp,
                                           uint8_t* out_hf_amp) {
-    if (side[0] == 0 && side[1] == 0 && side[2] == 0 && side[3] == 0) {
+    uint32_t raw = (uint32_t)side[0]
+                 | ((uint32_t)side[1] << 8)
+                 | ((uint32_t)side[2] << 16)
+                 | ((uint32_t)side[3] << 24);
+
+    if (raw == 0) {
         *out_lf_amp = 0;
         *out_hf_amp = 0;
         return;
     }
 
-    uint8_t hf_amp = (side[1] >> 1) & 0x7F;  // 0-127, 0 = silence
+    uint8_t ptype = (raw >> 30) & 0x03;
 
-    // LF amplitude is an 8-bit field where 128 (0x80) = silence.
-    // Values above 128 represent actual vibration.
-    uint16_t lf_amp_raw = ((side[2] >> 7) & 0x01) | ((side[3] & 0x7F) << 1);
-    uint8_t lf_amp = (lf_amp_raw > 128) ? (uint8_t)((lf_amp_raw - 128) * 2) : 0;
+    switch (ptype) {
+        case 0:
+            // null packet — emit current state unchanged
+            break;
 
-    *out_hf_amp = (uint16_t)hf_amp * 255 / 127;
-    *out_lf_amp = lf_amp;
+        case 1: {
+            uint32_t res5 = raw & 0x000FFFFF;  // one5bit.reserved = bits[19:0]
+            uint8_t  res7 = raw & 0x03;        // one7bit.reserved = bits[1:0]
+            if (res5 == 0) {
+                // one5bit: bits[29:25]=amfm_lo, bits[24:20]=amfm_hi
+                srumble_apply_lo((raw >> 25) & 0x1F, s);
+                srumble_apply_hi((raw >> 20) & 0x1F, s);
+            } else if (res7 == 0) {
+                // one7bit: full absolute update
+                s->lo_amp  = srumble_am7((raw >> 23) & 0x7F);
+                s->lo_freq = srumble_fm7((raw >> 16) & 0x7F);
+                s->hi_amp  = srumble_am7((raw >>  9) & 0x7F);
+                s->hi_freq = srumble_fm7((raw >>  2) & 0x7F);
+            } else {
+                // three7bit: one absolute update + two 5-bit delta samples
+                // bits[29:23]=xx_7bit, [22:18]=amfm_lo_1, [17:13]=amfm_hi_1,
+                //      [12:8]=amfm_lo_2, [7:3]=amfm_hi_2, [2]=freq_sel, [0]=hi_sel
+                uint8_t hi_sel   = (raw >> 0) & 0x01;
+                uint8_t freq_sel = (raw >> 2) & 0x01;
+                uint8_t hi_2     = (raw >>  3) & 0x1F;
+                uint8_t lo_2     = (raw >>  8) & 0x1F;
+                uint8_t hi_1     = (raw >> 13) & 0x1F;
+                uint8_t lo_1     = (raw >> 18) & 0x1F;
+                uint8_t val7     = (raw >> 23) & 0x7F;
+                if (hi_sel) {
+                    if (freq_sel) s->hi_freq = srumble_fm7(val7);
+                    else          s->hi_amp  = srumble_am7(val7);
+                } else {
+                    if (freq_sel) s->lo_freq = srumble_fm7(val7);
+                    else          s->lo_amp  = srumble_am7(val7);
+                }
+                srumble_apply_lo(lo_1, s);  srumble_apply_hi(hi_1, s);
+                srumble_apply_lo(lo_2, s);  srumble_apply_hi(hi_2, s);
+            }
+            break;
+        }
+
+        case 2: {
+            uint32_t res5 = raw & 0x3FF;  // two5bit.reserved = bits[9:0]
+            if (res5 == 0) {
+                // two5bit: bits[29:25]=lo_0, [24:20]=hi_0, [19:15]=lo_1, [14:10]=hi_1
+                srumble_apply_lo((raw >> 25) & 0x1F, s);
+                srumble_apply_hi((raw >> 20) & 0x1F, s);
+                srumble_apply_lo((raw >> 15) & 0x1F, s);
+                srumble_apply_hi((raw >> 10) & 0x1F, s);
+            } else {
+                // two7bit: bits[29:23]=am7, [22:18]=amfm_xx_0, [17:13]=amfm_lo_1,
+                //          [12:8]=amfm_hi_1, [7:1]=fm7, [0]=hi_sel
+                uint8_t hi_sel = (raw >>  0) & 0x01;
+                uint8_t fm7    = (raw >>  1) & 0x7F;
+                uint8_t hi_1   = (raw >>  8) & 0x1F;
+                uint8_t lo_1   = (raw >> 13) & 0x1F;
+                uint8_t xx_0   = (raw >> 18) & 0x1F;
+                uint8_t am7    = (raw >> 23) & 0x7F;
+                if (hi_sel) {
+                    s->hi_amp  = srumble_am7(am7);
+                    s->hi_freq = srumble_fm7(fm7);
+                    srumble_apply_lo(xx_0, s);
+                } else {
+                    s->lo_amp  = srumble_am7(am7);
+                    s->lo_freq = srumble_fm7(fm7);
+                    srumble_apply_hi(xx_0, s);
+                }
+                srumble_apply_lo(lo_1, s);  srumble_apply_hi(hi_1, s);
+            }
+            break;
+        }
+
+        case 3:
+            // three5bit: bits[29:25]=lo_0, [24:20]=hi_0, [19:15]=lo_1,
+            //            [14:10]=hi_1, [9:5]=lo_2, [4:0]=hi_2
+            srumble_apply_lo((raw >> 25) & 0x1F, s);
+            srumble_apply_hi((raw >> 20) & 0x1F, s);
+            srumble_apply_lo((raw >> 15) & 0x1F, s);
+            srumble_apply_hi((raw >> 10) & 0x1F, s);
+            srumble_apply_lo((raw >>  5) & 0x1F, s);
+            srumble_apply_hi((raw >>  0) & 0x1F, s);
+            break;
+    }
+
+    // Convert log2 amplitude to linear [0, 1], then to [0, 255].
+    // Threshold at -7.9375 (matches MissionControl's AmplitudeThreshold).
+    float lo_lin = (s->lo_amp >= -7.9375f) ? exp2f(s->lo_amp) : 0.0f;
+    float hi_lin = (s->hi_amp >= -7.9375f) ? exp2f(s->hi_amp) : 0.0f;
+    *out_lf_amp = (uint8_t)(lo_lin * 255.0f);
+    *out_hf_amp = (uint8_t)(hi_lin * 255.0f);
 }
 
 static void switch_pro_rumble_write_cb(struct bt_hogp* hogp, struct bt_hogp_rep_info* rep, uint8_t err) {
@@ -511,8 +690,8 @@ static struct bt_hogp_rep_info* switch_pro_find_xbox_rumble_report(struct bt_hog
 
 static void switch_pro_send_xbox_rumble(const uint8_t* switch_rumble) {
     uint8_t left_lf, left_hf, right_lf, right_hf;
-    switch_pro_rumble_decode_side(switch_rumble,     &left_lf,  &left_hf);
-    switch_pro_rumble_decode_side(switch_rumble + 4, &right_lf, &right_hf);
+    switch_pro_rumble_decode_side(switch_rumble,     &switch_pro_rumble_state[0], &left_lf,  &left_hf);
+    switch_pro_rumble_decode_side(switch_rumble + 4, &switch_pro_rumble_state[1], &right_lf, &right_hf);
 
     // Xbox Series X: strong motor = low-frequency, weak motor = high-frequency.
     // Take the max across left and right for each band.
