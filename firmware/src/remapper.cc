@@ -45,7 +45,7 @@ const uint8_t resolution_multiplier_masks[] = {
 };
 
 struct axis_aggregate_t {
-    int32_t default_value = 0;
+    int32_t default_values[8] = {};  // per-interface neutral; devices may have different logical ranges
     int32_t values[8] = {};
     uint32_t generations[8] = {};
     uint32_t generation = 0;
@@ -72,31 +72,36 @@ static int32_t axis_default_value(const usage_def_t& usage_def) {
 
 static int32_t aggregate_global_axis(uint32_t usage, int32_t value, int32_t default_value, uint8_t interface_idx) {
     axis_aggregate_t& aggregate = axis_aggregates[usage];
-    if (aggregate.generation == 0) {
-        aggregate.default_value = default_value;
-        for (int i = 0; i < 8; i++) {
-            aggregate.values[i] = default_value;
-        }
-    }
 
     if (interface_idx >= 8) {
         return value;
     }
 
+    aggregate.default_values[interface_idx] = default_value;
     aggregate.values[interface_idx] = value;
     aggregate.generations[interface_idx] = ++aggregate.generation;
 
-    int32_t newest_value = aggregate.default_value;
-    uint32_t newest_generation = 0;
+    // Pick the interface with the largest deviation from its own neutral.
+    // "Most physically intentional" wins: a controller held hard-left (deviation=127)
+    // beats a device whose disconnected port happens to report a non-neutral value (e.g. 64).
+    // If deviations tie, prefer the most-recently-updated interface as a tiebreaker.
+    int32_t best_value = default_value;
+    int32_t best_deviation = -1;
+    uint32_t best_generation = 0;
     for (int i = 0; i < 8; i++) {
-        if ((aggregate.values[i] != aggregate.default_value) &&
-            (aggregate.generations[i] >= newest_generation)) {
-            newest_value = aggregate.values[i];
-            newest_generation = aggregate.generations[i];
+        if (aggregate.generations[i] > 0) {
+            int32_t deviation = aggregate.values[i] - aggregate.default_values[i];
+            if (deviation < 0) deviation = -deviation;
+            if ((deviation > best_deviation) ||
+                ((deviation == best_deviation) && (aggregate.generations[i] > best_generation))) {
+                best_value = aggregate.values[i];
+                best_deviation = deviation;
+                best_generation = aggregate.generations[i];
+            }
         }
     }
 
-    return newest_value;
+    return best_value;
 }
 
 std::vector<reverse_mapping_t> reverse_mapping;

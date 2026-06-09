@@ -899,6 +899,8 @@ async function switch_pro_diag() {
             const bt_disconnected = p3[6] & 0xffff;
             const last_disconnect = (p3[6] >>> 16) & 0xff;
             const conn_high = p3[6] >>> 24;
+            const rumble_reports = p4[6] & 0xffff;
+            const rumble_writes = p4[6] >>> 16;
 
             return [
                 label,
@@ -926,6 +928,7 @@ async function switch_pro_diag() {
                 ' ly=0x' + (p4[3] & 0xffff).toString(16).padStart(4, '0') + '..0x' + (p4[3] >>> 16).toString(16).padStart(4, '0') +
                 ' rx=0x' + (p4[4] & 0xffff).toString(16).padStart(4, '0') + '..0x' + (p4[4] >>> 16).toString(16).padStart(4, '0') +
                 ' ry=0x' + (p4[5] & 0xffff).toString(16).padStart(4, '0') + '..0x' + (p4[5] >>> 16).toString(16).padStart(4, '0'),
+                'rumble_reports=' + rumble_reports + ' rumble_writes=' + rumble_writes,
             ];
         };
 
