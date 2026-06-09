@@ -750,6 +750,26 @@ static void switch_pro_send_xbox_rumble(const uint8_t* switch_rumble) {
     }
 }
 
+// Send a rumble payload directly to a specific hogp (bypasses the dedup cache).
+static void switch_pro_rumble_to_hogp(struct bt_hogp* hogp, uint8_t strong, uint8_t weak) {
+    struct bt_hogp_rep_info* rep = switch_pro_find_xbox_rumble_report(hogp);
+    if (rep == NULL) {
+        return;
+    }
+    uint8_t payload[8] = { 0x0f, 0x00, 0x00, strong, weak, 0xff, 0x00, 0x01 };
+    bt_hogp_rep_write_wo_rsp(hogp, rep, payload, sizeof(payload), switch_pro_rumble_write_cb);
+}
+
+// Stop-rumble work: sent ~250 ms after the connect buzz to silence all connected controllers.
+static void connect_rumble_stop_fn(struct k_work* work) {
+    for (uint8_t i = 0; i < CONFIG_BT_MAX_CONN; i++) {
+        if (bt_hogp_ready_check(&hogps[i])) {
+            switch_pro_rumble_to_hogp(&hogps[i], 0, 0);
+        }
+    }
+}
+static K_WORK_DELAYABLE_DEFINE(connect_rumble_stop_work, connect_rumble_stop_fn);
+
 static void switch_pro_handle_rumble_report(const uint8_t* report, uint8_t len, bool has_report_id) {
     uint8_t base = has_report_id ? 1 : 0;
     if (len < base + 9) {
@@ -1464,6 +1484,12 @@ static void hogp_ready_work_fn(struct k_work* work) {
         }
 
         bt_hogp_map_read(item.hogp, hogp_map_read_cb, 0, K_NO_WAIT);
+
+        if (is_switch_pro_mode()) {
+            // Short connect buzz: medium strength for 250 ms.
+            switch_pro_rumble_to_hogp(item.hogp, 0x60, 0x40);
+            k_work_reschedule(&connect_rumble_stop_work, K_MSEC(250));
+        }
     }
 }
 static K_WORK_DEFINE(hogp_ready_work, hogp_ready_work_fn);
