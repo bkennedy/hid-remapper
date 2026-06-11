@@ -13,7 +13,7 @@
 
 #define MAX_INPUT_REPORT_ID 0x81
 
-#define NOUR_DESCRIPTORS 7
+#define NOUR_DESCRIPTORS 8
 
 typedef void (*device_connected_t)(uint16_t interface, uint16_t vid, uint16_t pid);
 typedef void (*device_disconnected_t)(uint8_t dev_addr);

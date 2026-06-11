@@ -45,6 +45,7 @@ static struct bt_hogp hogps[CONFIG_BT_MAX_CONN];
 
 static K_SEM_DEFINE(usb_sem0, 1, 1);
 static K_SEM_DEFINE(usb_sem1, 1, 1);
+static K_SEM_DEFINE(switch2_vendor_in_sem, 1, 1);
 
 static struct k_mutex mutexes[(uint8_t) MutexId::N];
 
@@ -54,6 +55,10 @@ static bool get_report_response_ready = false;
 
 static const struct device* hid_dev0;
 static const struct device* hid_dev1;  // config interface
+
+#define SWITCH2_VENDOR_OUT_EP 0x02
+#define SWITCH2_VENDOR_IN_EP 0x82
+#define SWITCH2_VENDOR_EP_MPS 64
 
 struct report_type {
     uint16_t interface;
@@ -89,6 +94,42 @@ K_MSGQ_DEFINE(disconnected_q, sizeof(struct disconnected_type), CONFIG_BT_MAX_CO
 K_MSGQ_DEFINE(set_report_q, sizeof(struct set_report_type), 8, 4);
 K_MSGQ_DEFINE(switch_pro_response_q, 64, 8, 4);
 ATOMIC_DEFINE(tick_pending, 1);
+
+enum class ConnKind : uint8_t {
+    NONE = 0,
+    HOGP = 1,
+    SWITCH2_PRO = 2,
+};
+
+enum class Switch2ProInitState : uint8_t {
+    IDLE = 0,
+    READ_INFO,
+    PAIR_STEP1,
+    PAIR_STEP2,
+    PAIR_STEP3,
+    PAIR_STEP4,
+    SET_LED,
+    DONE,
+};
+
+struct switch2_pro_client {
+    struct bt_conn* conn;
+    struct bt_gatt_subscribe_params input_subscribe_params;
+    struct bt_gatt_subscribe_params ack_subscribe_params;
+    struct bt_gatt_exchange_params mtu_exchange_params;
+    uint16_t input_value_handle;
+    uint16_t output_value_handle;
+    uint16_t cmd_value_handle;
+    uint8_t conn_idx;
+    Switch2ProInitState init_state;
+    bool init_cmd_in_flight;
+    int64_t init_cmd_sent_at;
+};
+
+static ConnKind conn_kinds[CONFIG_BT_MAX_CONN];
+static bt_addr_le_t pending_switch2_pro_addr;
+static bool pending_switch2_pro_valid = false;
+static switch2_pro_client switch2_pro_clients[CONFIG_BT_MAX_CONN];
 
 #define SW0_NODE DT_ALIAS(sw0)
 #if !DT_NODE_HAS_STATUS(SW0_NODE, okay)
@@ -160,12 +201,283 @@ static uint16_t switch_pro_axis_last[4] = { 0x8000, 0x8000, 0x8000, 0x8000 };
 static uint16_t switch_pro_axis_min[4] = { 0xffff, 0xffff, 0xffff, 0xffff };
 static uint16_t switch_pro_axis_max[4] = { 0, 0, 0, 0 };
 
-static bool is_switch_pro_mode() {
+#define SWITCH2_FLIGHT_MAGIC 0x32574648  // HFW2
+#define SWITCH2_FLIGHT_VERSION 1
+#define SWITCH2_FLIGHT_EVENTS 64
+#define SWITCH2_FLIGHT_DATA_LEN 8
+#define SWITCH2_BOND_KEYS_MAGIC 0x324b4253  // SBK2
+#define SWITCH2_BOND_KEYS_VERSION 1
+#define SWITCH2_BOND_KEYS_DATA_LEN 1024
+
+enum class Switch2FlightEvent : uint8_t {
+    BOOT = 1,
+    USB_STATUS = 2,
+    SET_REPORT = 3,
+    GET_REPORT = 4,
+    INT_OUT = 5,
+    HOST_CMD = 6,
+    QUEUE_RESPONSE = 7,
+    SEND_RESPONSE = 8,
+    SEND_INPUT = 9,
+    INPUT_ENABLE = 10,
+    BLE_INPUT = 11,
+    BLE_INIT = 12,
+    RUMBLE = 13,
+    CONFIG_SET = 14,
+    BT_CONNECT = 15,
+    BT_DISCONNECT = 16,
+    BT_SECURITY = 17,
+    BT_PAIRING = 18,
+    SCAN = 19,
+    BOND_KEYS = 20,
+};
+
+struct switch2_flight_event {
+    uint32_t ms;
+    uint16_t seq;
+    uint8_t event;
+    uint8_t len;
+    uint8_t a;
+    uint8_t b;
+    uint8_t c;
+    uint8_t d;
+    uint8_t data[SWITCH2_FLIGHT_DATA_LEN];
+};
+
+struct switch2_flight_log {
+    uint32_t magic;
+    uint16_t version;
+    uint16_t next_seq;
+    uint8_t head;
+    uint8_t wrapped;
+    uint8_t reserved[2];
+    switch2_flight_event events[SWITCH2_FLIGHT_EVENTS];
+};
+
+struct switch2_bond_keys_snapshot {
+    uint32_t magic;
+    uint16_t version;
+    uint16_t total_len;
+    uint8_t record_count;
+    uint8_t truncated;
+    uint8_t reserved[2];
+    uint8_t data[SWITCH2_BOND_KEYS_DATA_LEN];
+};
+
+static switch2_flight_log switch2_flight = {
+    .magic = SWITCH2_FLIGHT_MAGIC,
+    .version = SWITCH2_FLIGHT_VERSION,
+};
+static switch2_bond_keys_snapshot switch2_bond_keys = {
+    .magic = SWITCH2_BOND_KEYS_MAGIC,
+    .version = SWITCH2_BOND_KEYS_VERSION,
+};
+static bool switch2_flight_dirty = false;
+static int64_t switch2_flight_last_persist_ms = 0;
+static int64_t switch2_flight_last_input_event_ms = 0;
+static bool switch2_pro_ble_enabled = false;
+
+static bool is_switch1_pro_mode() {
     return our_descriptor_number == 6;
+}
+
+static bool is_switch2_pro_mode() {
+    return our_descriptor_number == 7;
+}
+
+static bool is_switch2_pro_ble_mode() {
+    return is_switch2_pro_mode() || switch2_pro_ble_enabled;
+}
+
+static bool is_switch_pro_mode() {
+    return is_switch1_pro_mode() || is_switch2_pro_mode();
+}
+
+static void switch2_flight_reset_if_invalid() {
+    if (switch2_flight.magic == SWITCH2_FLIGHT_MAGIC &&
+        switch2_flight.version == SWITCH2_FLIGHT_VERSION &&
+        switch2_flight.head < SWITCH2_FLIGHT_EVENTS) {
+        return;
+    }
+
+    memset(&switch2_flight, 0, sizeof(switch2_flight));
+    switch2_flight.magic = SWITCH2_FLIGHT_MAGIC;
+    switch2_flight.version = SWITCH2_FLIGHT_VERSION;
+}
+
+static void switch2_flight_record(Switch2FlightEvent event, uint8_t a = 0, uint8_t b = 0, uint8_t c = 0, uint8_t d = 0, const uint8_t* data = NULL, uint8_t len = 0) {
+    if (!is_switch2_pro_ble_mode() && event != Switch2FlightEvent::BOOT && event != Switch2FlightEvent::CONFIG_SET) {
+        return;
+    }
+
+    switch2_flight_reset_if_invalid();
+
+    switch2_flight_event* item = &switch2_flight.events[switch2_flight.head];
+    memset(item, 0, sizeof(*item));
+    item->ms = (uint32_t) k_uptime_get_32();
+    item->seq = switch2_flight.next_seq++;
+    item->event = (uint8_t) event;
+    item->a = a;
+    item->b = b;
+    item->c = c;
+    item->d = d;
+    item->len = MIN(len, (uint8_t) SWITCH2_FLIGHT_DATA_LEN);
+    if (data && item->len) {
+        memcpy(item->data, data, item->len);
+    }
+
+    switch2_flight.head++;
+    if (switch2_flight.head >= SWITCH2_FLIGHT_EVENTS) {
+        switch2_flight.head = 0;
+        switch2_flight.wrapped = 1;
+    }
+    switch2_flight_dirty = true;
+}
+
+static const char* switch2_flight_event_name(uint8_t event) {
+    switch ((Switch2FlightEvent) event) {
+        case Switch2FlightEvent::BOOT: return "boot";
+        case Switch2FlightEvent::USB_STATUS: return "usb_status";
+        case Switch2FlightEvent::SET_REPORT: return "set_report";
+        case Switch2FlightEvent::GET_REPORT: return "get_report";
+        case Switch2FlightEvent::INT_OUT: return "int_out";
+        case Switch2FlightEvent::HOST_CMD: return "host_cmd";
+        case Switch2FlightEvent::QUEUE_RESPONSE: return "queue_response";
+        case Switch2FlightEvent::SEND_RESPONSE: return "send_response";
+        case Switch2FlightEvent::SEND_INPUT: return "send_input";
+        case Switch2FlightEvent::INPUT_ENABLE: return "input_enable";
+        case Switch2FlightEvent::BLE_INPUT: return "ble_input";
+        case Switch2FlightEvent::BLE_INIT: return "ble_init";
+        case Switch2FlightEvent::RUMBLE: return "rumble";
+        case Switch2FlightEvent::CONFIG_SET: return "config_set";
+        case Switch2FlightEvent::BT_CONNECT: return "bt_connect";
+        case Switch2FlightEvent::BT_DISCONNECT: return "bt_disconnect";
+        case Switch2FlightEvent::BT_SECURITY: return "bt_security";
+        case Switch2FlightEvent::BT_PAIRING: return "bt_pairing";
+        case Switch2FlightEvent::SCAN: return "scan";
+        case Switch2FlightEvent::BOND_KEYS: return "bond_keys";
+        default: return "unknown";
+    }
+}
+
+static void switch2_bond_keys_reset() {
+    memset(&switch2_bond_keys, 0, sizeof(switch2_bond_keys));
+    switch2_bond_keys.magic = SWITCH2_BOND_KEYS_MAGIC;
+    switch2_bond_keys.version = SWITCH2_BOND_KEYS_VERSION;
+}
+
+static void switch2_bond_keys_append(const char* name, const uint8_t* value, uint16_t value_len) {
+    uint8_t name_len = (uint8_t) MIN(strlen(name), (size_t) 63);
+    uint32_t needed = 1 + 2 + name_len + value_len;
+    uint32_t remaining = SWITCH2_BOND_KEYS_DATA_LEN - switch2_bond_keys.total_len;
+
+    if (needed > remaining) {
+        switch2_bond_keys.truncated = 1;
+        return;
+    }
+
+    uint8_t* out = switch2_bond_keys.data + switch2_bond_keys.total_len;
+    *out++ = name_len;
+    sys_put_le16(value_len, out);
+    out += 2;
+    memcpy(out, name, name_len);
+    out += name_len;
+    memcpy(out, value, value_len);
+    switch2_bond_keys.total_len += needed;
+    switch2_bond_keys.record_count++;
+}
+
+static int switch2_bond_keys_settings_cb(const char* name, size_t len, settings_read_cb read_cb, void* cb_arg, void* param) {
+    ARG_UNUSED(param);
+
+    if (!name || len == 0) {
+        return 0;
+    }
+
+    if (len > 255) {
+        switch2_bond_keys.truncated = 1;
+        len = 255;
+    }
+
+    uint8_t value[255];
+    int bytes_read = read_cb(cb_arg, value, len);
+    if (bytes_read < 0) {
+        switch2_bond_keys.truncated = 1;
+        return bytes_read;
+    }
+
+    switch2_bond_keys_append(name, value, (uint16_t) bytes_read);
+    return 0;
+}
+
+static void switch2_bond_keys_snapshot_now() {
+    switch2_bond_keys_reset();
+    int err = settings_load_subtree_direct("bt/keys", switch2_bond_keys_settings_cb, NULL);
+    switch2_flight_record(Switch2FlightEvent::BOND_KEYS,
+        err ? 0xff : switch2_bond_keys.record_count,
+        switch2_bond_keys.truncated,
+        (uint8_t) (switch2_bond_keys.total_len & 0xff),
+        (uint8_t) (switch2_bond_keys.total_len >> 8));
+}
+
+static void switch2_flight_dump_saved() {
+    switch2_flight_reset_if_invalid();
+
+    uint8_t count = switch2_flight.wrapped ? SWITCH2_FLIGHT_EVENTS : switch2_flight.head;
+    uint8_t start = switch2_flight.wrapped ? switch2_flight.head : 0;
+    LOG_INF("switch2_flight dump count=%u next_seq=%u wrapped=%u", count, switch2_flight.next_seq, switch2_flight.wrapped);
+    for (uint8_t i = 0; i < count; i++) {
+        const switch2_flight_event* item = &switch2_flight.events[(start + i) % SWITCH2_FLIGHT_EVENTS];
+        LOG_INF("switch2_flight seq=%u ms=%u event=%s(%u) a=%02x b=%02x c=%02x d=%02x len=%u data=%02x %02x %02x %02x %02x %02x %02x %02x",
+            item->seq, item->ms, switch2_flight_event_name(item->event), item->event,
+            item->a, item->b, item->c, item->d, item->len,
+            item->data[0], item->data[1], item->data[2], item->data[3],
+            item->data[4], item->data[5], item->data[6], item->data[7]);
+    }
+}
+
+static void switch2_flight_persist(bool force = false) {
+    if (!switch2_flight_dirty) {
+        return;
+    }
+
+    int64_t now = k_uptime_get();
+    if (!force && switch2_flight_last_persist_ms && (now - switch2_flight_last_persist_ms < 750)) {
+        return;
+    }
+
+    switch2_flight_last_persist_ms = now;
+    switch2_flight_dirty = false;
+    settings_save_one("remapper/switch2_flight", &switch2_flight, sizeof(switch2_flight));
+}
+
+static void switch2_flight_record_send_input(bool sent) {
+    if (!is_switch2_pro_mode()) {
+        return;
+    }
+
+    int64_t now = k_uptime_get();
+    if (sent && switch2_flight_last_input_event_ms && (now - switch2_flight_last_input_event_ms < 1000)) {
+        return;
+    }
+    switch2_flight_last_input_event_ms = now;
+    switch2_flight_record(Switch2FlightEvent::SEND_INPUT, switch_pro_current_input[0], sent, switch_pro_input_enabled, switch_pro_current_input[1], switch_pro_current_input, sizeof(switch_pro_current_input));
 }
 
 static void switch_pro_reset_input() {
     memset(switch_pro_current_input, 0, sizeof(switch_pro_current_input));
+    if (is_switch2_pro_mode()) {
+        switch_pro_current_input[0] = 0x09;
+        switch_pro_current_input[2] = 0x15;
+        switch_pro_current_input[6] = 0x00;
+        switch_pro_current_input[7] = 0x08;
+        switch_pro_current_input[8] = 0x80;
+        switch_pro_current_input[9] = 0x00;
+        switch_pro_current_input[10] = 0x08;
+        switch_pro_current_input[11] = 0x80;
+        switch_pro_current_input[12] = 0x38;
+        return;
+    }
     switch_pro_current_input[0] = 0x30;
     switch_pro_current_input[2] = 0x91;
     switch_pro_current_input[4] = 0x80;
@@ -306,6 +618,81 @@ static void pack_switch_pro_stick(uint8_t* out, uint16_t x16, uint16_t y16) {
     out[2] = (y >> 4) & 0xff;
 }
 
+static uint16_t switch2_pro_axis12_from_state_or_report(uint32_t usage, uint16_t report_value) {
+    bool found = false;
+    int32_t value = get_input_state_value(usage, 0, false, &found);
+    if (!found) {
+        return report_value & 0x0fff;
+    }
+    if (value < 0) {
+        return 0;
+    }
+    if (value > 255) {
+        value = 255;
+    }
+    return (uint16_t) ((value * 0x0fff) / 255);
+}
+
+static void pack_switch2_pro_stick12(uint8_t* out, uint16_t x, uint16_t y) {
+    x &= 0x0fff;
+    y &= 0x0fff;
+    out[0] = x & 0xff;
+    out[1] = ((x >> 8) & 0x0f) | ((y & 0x0f) << 4);
+    out[2] = (y >> 4) & 0xff;
+}
+
+static uint16_t switch2_pro_unpack_stick_x(const uint8_t* data) {
+    return (uint16_t) data[0] | (((uint16_t) data[1] & 0x0f) << 8);
+}
+
+static uint16_t switch2_pro_unpack_stick_y(const uint8_t* data) {
+    return (((uint16_t) data[1] & 0xf0) >> 4) | ((uint16_t) data[2] << 4);
+}
+
+static void switch2_pro_set_input_from_packet(const uint8_t* data, uint16_t len) {
+    if (len < 11 || !is_switch2_pro_ble_mode()) {
+        return;
+    }
+
+    uint8_t next[64];
+    memcpy(next, switch_pro_current_input, sizeof(next));
+    next[0] = 0x09;
+    next[2] = 0x15;
+    next[3] = data[2];
+    next[4] = data[3];
+    // BLE special byte has Capture at bit4; USB report has it at bit1
+    next[5] = (data[4] & 0x0d) | ((data[4] >> 3) & 0x02);
+
+    uint16_t lx = switch2_pro_axis12_from_state_or_report(0x00010030, switch2_pro_unpack_stick_x(data + 5));
+    uint16_t ly = switch2_pro_axis12_from_state_or_report(0x00010031, switch2_pro_unpack_stick_y(data + 5));
+    uint16_t rx = switch2_pro_axis12_from_state_or_report(0x00010033, switch2_pro_unpack_stick_x(data + 8));
+    uint16_t ry = switch2_pro_axis12_from_state_or_report(0x00010035, switch2_pro_unpack_stick_y(data + 8));
+
+    switch_pro_note_axis(0, lx << 4);
+    switch_pro_note_axis(1, ly << 4);
+    switch_pro_note_axis(2, rx << 4);
+    switch_pro_note_axis(3, ry << 4);
+    pack_switch2_pro_stick12(next + 6, lx, ly);
+    pack_switch2_pro_stick12(next + 9, rx, ry);
+    next[12] = 0x38;
+
+    bool buttons_changed = next[3] != switch_pro_current_input[3] || next[4] != switch_pro_current_input[4] || next[5] != switch_pro_current_input[5];
+    memcpy(switch_pro_current_input, next, sizeof(switch_pro_current_input));
+    switch_pro_translated_reports++;
+    switch_pro_input_enabled = true;
+
+    int64_t now = k_uptime_get();
+    if (buttons_changed && (now - switch_pro_last_button_log_ms >= 20)) {
+        switch_pro_last_button_log_ms = now;
+        switch2_flight_record(Switch2FlightEvent::BLE_INPUT, switch_pro_current_input[3], switch_pro_current_input[4], switch_pro_current_input[5], switch_pro_current_input[1], switch_pro_current_input, sizeof(switch_pro_current_input));
+        LOG_INF("switch2_pro buttons=%02x %02x %02x sticks=%02x %02x %02x %02x %02x %02x out_q=%u",
+            switch_pro_current_input[3], switch_pro_current_input[4], switch_pro_current_input[5],
+            switch_pro_current_input[6], switch_pro_current_input[7], switch_pro_current_input[8],
+            switch_pro_current_input[9], switch_pro_current_input[10], switch_pro_current_input[11],
+            debug_outgoing_report_count());
+    }
+}
+
 static void apply_switch_pro_hat(uint8_t hat, uint8_t* buttons2) {
     if (hat > 7) {
         return;
@@ -391,6 +778,9 @@ static void switch_pro_queue_response(const uint8_t* response, size_t len) {
         len = sizeof(buf);
     }
     memcpy(buf, response, len);
+    if (is_switch2_pro_mode()) {
+        switch2_flight_record(Switch2FlightEvent::QUEUE_RESPONSE, response[0], response[1], response[2], response[3], response, (uint8_t) len);
+    }
     if (k_msgq_put(&switch_pro_response_q, buf, K_NO_WAIT)) {
         switch_pro_response_drops++;
     }
@@ -422,6 +812,197 @@ static void switch_pro_queue_21(uint8_t subcommand, uint8_t ack, const uint8_t* 
         memcpy(response + 15, data, data_len);
     }
     switch_pro_queue_response(response, sizeof(response));
+}
+
+static void switch2_pro_command_header(uint8_t* response, uint8_t cmd, uint8_t seq, uint8_t sub) {
+    response[0] = cmd;
+    response[1] = 0x01;
+    response[2] = seq;
+    response[3] = sub;
+    response[4] = 0x10;
+    response[5] = 0x78;
+    response[6] = 0x00;
+    response[7] = 0x00;
+}
+
+static void switch2_pro_queue_command_header(uint8_t cmd, uint8_t seq, uint8_t sub) {
+    uint8_t response[64] = {};
+    switch2_pro_command_header(response, cmd, seq, sub);
+    switch_pro_queue_response(response, sizeof(response));
+}
+
+static void switch2_pro_encode_stick_calibration(uint8_t* out) {
+    pack_switch2_pro_stick12(out + 0, 0x0800, 0x0800);
+    pack_switch2_pro_stick12(out + 3, 0x07ff, 0x07ff);
+    pack_switch2_pro_stick12(out + 6, 0x0800, 0x0800);
+}
+
+static void switch2_pro_fill_flash_block(uint32_t address, uint8_t* block, size_t len) {
+    memset(block, 0, len);
+    if (address == 0x00013000 && len >= 18) {
+        memcpy(block + 2, "HR-SW2PRO-00", 12);
+    } else if ((address == 0x00013080 || address == 0x000130c0) && len >= 0x31) {
+        switch2_pro_encode_stick_calibration(block + 0x28);
+    }
+}
+
+static void switch2_pro_handle_flash_command(uint8_t seq, uint8_t sub, const uint8_t* report, uint8_t len) {
+    uint8_t response[64] = {};
+    switch2_pro_command_header(response, 0x02, seq, sub);
+
+    if (sub == 0x01 && len >= 16) {
+        uint32_t address = (uint32_t) report[12] |
+            ((uint32_t) report[13] << 8) |
+            ((uint32_t) report[14] << 16) |
+            ((uint32_t) report[15] << 24);
+        response[8] = 0x40;
+        response[12] = report[12];
+        response[13] = report[13];
+        response[14] = report[14];
+        response[15] = report[15];
+        switch2_pro_fill_flash_block(address, response + 16, sizeof(response) - 16);
+    }
+
+    switch_pro_queue_response(response, sizeof(response));
+}
+
+static uint8_t switch2_pro_feature_mask = 0;
+static uint8_t switch2_pro_feature_flags = 0x01 | 0x02;
+static uint8_t switch2_pro_active_report_id = 0x09;
+
+static void switch2_pro_feature_info(uint8_t flags, uint8_t* out) {
+    memset(out, 0, 8);
+    if (flags & 0x01) out[0] = 0x07;  // buttons
+    if (flags & 0x02) out[1] = 0x07;  // sticks
+    if (flags & 0x04) out[2] = 0x01;  // IMU
+    if (flags & 0x10) out[4] = 0x03;  // mouse
+    if (flags & 0x20) out[5] = 0x03;  // rumble
+}
+
+static void switch2_pro_handle_feature_command(uint8_t seq, uint8_t sub, const uint8_t* report, uint8_t len) {
+    uint8_t response[64] = {};
+    uint8_t flags = len >= 9 ? report[8] : 0;
+    switch2_pro_command_header(response, 0x0c, seq, sub);
+
+    switch (sub) {
+        case 0x01:
+            switch2_pro_feature_info(flags, response + 12);
+            break;
+        case 0x02:
+            switch2_pro_feature_mask = flags;
+            break;
+        case 0x03:
+            switch2_pro_feature_mask = 0;
+            switch2_pro_feature_flags = 0;
+            break;
+        case 0x04:
+            switch2_pro_feature_flags |= switch2_pro_feature_mask ? (flags & switch2_pro_feature_mask) : flags;
+            break;
+        case 0x05:
+            switch2_pro_feature_flags &= ~(switch2_pro_feature_mask ? (flags & switch2_pro_feature_mask) : flags);
+            break;
+        default:
+            break;
+    }
+
+    if (switch2_pro_feature_flags & 0x20) {
+        switch_pro_current_input[12] = 0x38;
+    }
+    switch_pro_queue_response(response, sizeof(response));
+}
+
+static void switch2_pro_handle_usb_command(uint8_t seq, uint8_t sub, const uint8_t* report, uint8_t len) {
+    switch (sub) {
+        case 0x03: {
+            switch_pro_input_enabled = len >= 9 && report[8] != 0;
+            switch2_flight_record(Switch2FlightEvent::INPUT_ENABLE, sub, switch_pro_input_enabled, len >= 9 ? report[8] : 0, 0, report, len);
+            uint8_t response[64] = {};
+            switch2_pro_command_header(response, 0x03, seq, sub);
+            response[8] = 0x01;
+            switch_pro_queue_response(response, sizeof(response));
+            break;
+        }
+        case 0x0d: {
+            switch_pro_input_enabled = true;
+            switch2_flight_record(Switch2FlightEvent::INPUT_ENABLE, sub, switch_pro_input_enabled, len >= 9 ? report[8] : 0, 0, report, len);
+            uint8_t response[64] = {};
+            switch2_pro_command_header(response, 0x03, seq, sub);
+            response[8] = 0x01;
+            switch_pro_queue_response(response, sizeof(response));
+            break;
+        }
+        case 0x0a:
+            if (len >= 9 && (report[8] == 0x05 || report[8] == 0x09)) {
+                switch2_pro_active_report_id = report[8];
+            }
+            switch2_pro_queue_command_header(0x03, seq, sub);
+            break;
+        default:
+            switch2_pro_queue_command_header(0x03, seq, sub);
+            break;
+    }
+}
+
+static bool switch2_pro_write_controller_output(const uint8_t* data, uint8_t len) {
+    for (uint8_t i = 0; i < CONFIG_BT_MAX_CONN; i++) {
+        switch2_pro_client* client = &switch2_pro_clients[i];
+        if (client->conn == NULL || client->output_value_handle == 0) {
+            continue;
+        }
+        int err = bt_gatt_write_without_response(client->conn, client->output_value_handle, data, len, false);
+        if (!err) {
+            switch_pro_rumble_writes++;
+            return true;
+        }
+        switch_pro_rumble_write_fails++;
+    }
+    return false;
+}
+
+static void switch2_pro_handle_rumble_report(const uint8_t* report, uint8_t len) {
+    switch_pro_rumble_reports++;
+    switch2_flight_record(Switch2FlightEvent::RUMBLE, report[0], report[1], 0, 0, report, len);
+    switch2_pro_write_controller_output(report, len);
+}
+
+static bool switch2_pro_handle_output_report(const uint8_t* report, uint8_t len) {
+    if (!is_switch2_pro_mode() || len == 0) {
+        return false;
+    }
+
+    switch2_flight_record(Switch2FlightEvent::HOST_CMD, report[0], len > 1 ? report[1] : 0, len > 2 ? report[2] : 0, len > 3 ? report[3] : 0, report, len);
+
+    if (len >= 2 && report[0] == 0x02 && report[1] != 0x91) {
+        switch2_pro_handle_rumble_report(report, len);
+        return true;
+    }
+
+    if (len < 8 || report[1] != 0x91) {
+        return false;
+    }
+
+    uint8_t cmd = report[0];
+    uint8_t seq = report[2];
+    uint8_t sub = report[3];
+
+    switch (cmd) {
+        case 0x02:
+            switch2_pro_handle_flash_command(seq, sub, report, len);
+            break;
+        case 0x03:
+            switch2_pro_handle_usb_command(seq, sub, report, len);
+            break;
+        case 0x09:
+            switch2_pro_queue_command_header(0x09, seq, sub);
+            break;
+        case 0x0c:
+            switch2_pro_handle_feature_command(seq, sub, report, len);
+            break;
+        default:
+            switch2_pro_queue_command_header(cmd, seq, sub);
+            break;
+    }
+    return true;
 }
 
 static void switch_pro_spi_read(const uint8_t* args, uint8_t args_len) {
@@ -827,6 +1408,10 @@ static bool switch_pro_handle_output_report(const uint8_t* report, uint8_t len) 
         return false;
     }
 
+    if (is_switch2_pro_mode()) {
+        return switch2_pro_handle_output_report(report, len);
+    }
+
     uint8_t report_id = report[0];
     bool has_report_id = true;
 
@@ -874,7 +1459,18 @@ static bool switch_pro_send_response() {
     if (!is_switch_pro_mode() || k_msgq_get(&switch_pro_response_q, response, K_NO_WAIT)) {
         return false;
     }
-    bool sent = CHK(hid_int_ep_write(hid_dev0, response, sizeof(response), NULL));
+    bool sent;
+#if CONFIG_USB_HID_DEVICE_COUNT == 1
+    if (is_switch2_pro_mode()) {
+        sent = CHK(usb_write(SWITCH2_VENDOR_IN_EP, response, sizeof(response), NULL));
+    } else
+#endif
+    {
+        sent = CHK(hid_int_ep_write(hid_dev0, response, sizeof(response), NULL));
+    }
+    if (is_switch2_pro_mode()) {
+        switch2_flight_record(Switch2FlightEvent::SEND_RESPONSE, response[0], sent, response[2], response[3], response, sizeof(response));
+    }
     if (sent) {
         switch_pro_response_writes++;
     } else {
@@ -896,6 +1492,9 @@ static bool switch_pro_send_input_heartbeat() {
     switch_pro_current_input[1] = switch_pro_timer++;
     switch_pro_last_input_ms = now;
     bool sent = CHK(hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL));
+    if (is_switch2_pro_mode()) {
+        switch2_flight_record_send_input(sent);
+    }
     if (sent) {
         switch_pro_heartbeat_writes++;
     } else {
@@ -1069,17 +1668,57 @@ static void set_led_mode(LedMode led_mode_) {
 
 static void scan_start() {
     if (CHK(bt_scan_start(BT_SCAN_TYPE_SCAN_PASSIVE))) {
-        LOG_DBG("Scanning started.");
+        LOG_INF("Scanning started.");
         scanning = true;
     }
 }
 
 static void scan_stop() {
     if (CHK(bt_scan_stop())) {
-        LOG_DBG("Scanning stopped.");
+        LOG_INF("Scanning stopped.");
         scanning = false;
         set_led_mode(LedMode::BLINK);
     }
+}
+
+struct switch2_pro_adv_parse_ctx {
+    bool matched;
+    uint8_t sample[8];
+    uint8_t sample_len;
+};
+
+static constexpr uint16_t SWITCH2_PRO_BT_COMPANY_ID = 0x0553;
+static constexpr uint16_t SWITCH2_PRO_NINTENDO_USB_VID = 0x057e;
+static constexpr uint16_t SWITCH2_PRO_USB_PID = 0x2069;
+
+static bool switch2_pro_adv_parse_cb(struct bt_data* data, void* user_data) {
+    switch2_pro_adv_parse_ctx* ctx = (switch2_pro_adv_parse_ctx*) user_data;
+    if (data->type != BT_DATA_MANUFACTURER_DATA || data->data_len < 9) {
+        return true;
+    }
+
+    const uint8_t* mfg = data->data;
+    uint16_t company_id = sys_get_le16(mfg);
+    if (company_id != SWITCH2_PRO_BT_COMPANY_ID) {
+        return true;
+    }
+
+    ctx->sample_len = MIN(data->data_len, (uint8_t) sizeof(ctx->sample));
+    memcpy(ctx->sample, mfg, ctx->sample_len);
+
+    uint16_t vid = sys_get_le16(mfg + 5);
+    uint16_t pid = sys_get_le16(mfg + 7);
+    if (vid == SWITCH2_PRO_NINTENDO_USB_VID && pid == SWITCH2_PRO_USB_PID) {
+        ctx->matched = true;
+        return false;
+    }
+    return true;
+}
+
+static bool switch2_pro_adv_matches(struct net_buf_simple* adv_data) {
+    switch2_pro_adv_parse_ctx ctx = {};
+    bt_data_parse(adv_data, switch2_pro_adv_parse_cb, &ctx);
+    return ctx.matched;
 }
 
 static void process_bond(const struct bt_bond_info* info, void* user_data) {
@@ -1103,6 +1742,26 @@ static int count_connections() {
 
 static bool scan_setup_filters() {
     bt_scan_filter_remove_all();
+
+    if (is_switch2_pro_ble_mode()) {
+        LOG_INF("scanning for Switch 2 Pro Controller manufacturer data");
+        int bonded_count = 0;
+        bt_foreach_bond(BT_ID_DEFAULT, process_bond, &bonded_count);
+        switch2_flight_record(Switch2FlightEvent::SCAN, bonded_count, peers_only, 0, 0);
+        static uint8_t nintendo_mfg_prefix[] = { 0x53, 0x05 };
+        struct bt_scan_manufacturer_data nintendo_mfg = {
+            .data = nintendo_mfg_prefix,
+            .data_len = sizeof(nintendo_mfg_prefix),
+        };
+        if (!CHK(bt_scan_filter_add(BT_SCAN_FILTER_TYPE_MANUFACTURER_DATA, &nintendo_mfg))) {
+            return false;
+        }
+        if (!CHK(bt_scan_filter_enable(BT_SCAN_MANUFACTURER_DATA_FILTER, false))) {
+            return false;
+        }
+        peers_only = false;
+        return true;
+    }
 
     if (!CHK(bt_scan_filter_add(BT_SCAN_FILTER_TYPE_UUID, (struct bt_uuid*) &BT_UUID_HIDS_))) {
         return false;
@@ -1171,7 +1830,33 @@ static void clear_bonds_work_fn(struct k_work* work) {
 static K_WORK_DEFINE(clear_bonds_work, clear_bonds_work_fn);
 
 static void scan_filter_match(struct bt_scan_device_info* device_info, struct bt_scan_filter_match* filter_match, bool connectable) {
+    struct bt_conn* conn;
     char addr[BT_ADDR_LE_STR_LEN];
+
+    if (is_switch2_pro_ble_mode()) {
+        bt_addr_le_to_str(device_info->recv_info->addr, addr, sizeof(addr));
+        if (!connectable || !switch2_pro_adv_matches(device_info->adv_data)) {
+            LOG_INF("ignoring Nintendo manufacturer data from %s connectable=%u", addr, connectable);
+            return;
+        }
+        switch2_pro_adv_parse_ctx ctx = {};
+        bt_data_parse(device_info->adv_data, switch2_pro_adv_parse_cb, &ctx);
+        LOG_INF("Switch 2 Pro filter match: %s adv_type=%u mfg=%02x %02x %02x %02x %02x %02x %02x %02x",
+            addr, device_info->recv_info->adv_type,
+            ctx.sample[0], ctx.sample[1], ctx.sample[2], ctx.sample[3],
+            ctx.sample[4], ctx.sample[5], ctx.sample[6], ctx.sample[7]);
+        switch2_flight_record(Switch2FlightEvent::SCAN, 1, connectable, device_info->recv_info->adv_type, ctx.sample_len, ctx.sample, ctx.sample_len);
+        scan_stop();
+        bt_addr_le_copy(&pending_switch2_pro_addr, device_info->recv_info->addr);
+        pending_switch2_pro_valid = true;
+        if (CHK(bt_conn_le_create(device_info->recv_info->addr, &BT_CONN_LE_CREATE_CONN_, conn_param, &conn))) {
+            bt_conn_unref(conn);
+        } else {
+            pending_switch2_pro_valid = false;
+            k_work_reschedule(&scan_start_work, K_MSEC(SCAN_DELAY_MS));
+        }
+        return;
+    }
 
     if (!filter_match->uuid.match || (filter_match->uuid.count != 1)) {
         LOG_WRN("%s invalid device connected", __func__);
@@ -1195,6 +1880,28 @@ static void scan_connecting(struct bt_scan_device_info* device_info, struct bt_c
 static void scan_filter_no_match(struct bt_scan_device_info* device_info, bool connectable) {
     struct bt_conn* conn;
     char addr[BT_ADDR_LE_STR_LEN];
+
+    if (is_switch2_pro_ble_mode() && connectable && switch2_pro_adv_matches(device_info->adv_data)) {
+        bt_addr_le_to_str(device_info->recv_info->addr, addr, sizeof(addr));
+        switch2_pro_adv_parse_ctx ctx = {};
+        bt_data_parse(device_info->adv_data, switch2_pro_adv_parse_cb, &ctx);
+        LOG_INF("Switch 2 Pro advertisement from %s adv_type=%u mfg=%02x %02x %02x %02x %02x %02x %02x %02x",
+            addr, device_info->recv_info->adv_type,
+            ctx.sample[0], ctx.sample[1], ctx.sample[2], ctx.sample[3],
+            ctx.sample[4], ctx.sample[5], ctx.sample[6], ctx.sample[7]);
+        switch2_flight_record(Switch2FlightEvent::SCAN, 2, connectable, device_info->recv_info->adv_type, ctx.sample_len, ctx.sample, ctx.sample_len);
+        scan_stop();
+        bt_addr_le_copy(&pending_switch2_pro_addr, device_info->recv_info->addr);
+        pending_switch2_pro_valid = true;
+
+        if (CHK(bt_conn_le_create(device_info->recv_info->addr, &BT_CONN_LE_CREATE_CONN_, conn_param, &conn))) {
+            bt_conn_unref(conn);
+        } else {
+            pending_switch2_pro_valid = false;
+            k_work_reschedule(&scan_start_work, K_MSEC(SCAN_DELAY_MS));
+        }
+        return;
+    }
 
     if (device_info->recv_info->adv_type == BT_GAP_ADV_TYPE_ADV_DIRECT_IND) {
         bt_addr_le_to_str(device_info->recv_info->addr, addr, sizeof(addr));
@@ -1271,6 +1978,234 @@ static void gatt_discover(struct bt_conn* conn) {
     }
 }
 
+static constexpr uint16_t SWITCH2_PRO_INPUT_VALUE_HANDLE = 0x000a;
+static constexpr uint16_t SWITCH2_PRO_INPUT_CCC_HANDLE = 0x000b;
+static constexpr uint16_t SWITCH2_PRO_OUTPUT_VALUE_HANDLE = 0x0012;
+static constexpr uint16_t SWITCH2_PRO_CMD_VALUE_HANDLE = 0x0014;
+static constexpr uint16_t SWITCH2_PRO_ACK_VALUE_HANDLE = 0x001a;
+static constexpr uint16_t SWITCH2_PRO_ACK_CCC_HANDLE = 0x001b;
+static constexpr int64_t SWITCH2_PRO_INIT_ACK_TIMEOUT_MS = 8000;
+
+static void switch2_pro_send_init_cmd(switch2_pro_client* client);
+
+static void switch2_pro_init_retry_work_fn(struct k_work* work);
+static K_WORK_DELAYABLE_DEFINE(switch2_pro_init_retry_work, switch2_pro_init_retry_work_fn);
+
+static uint8_t switch2_pro_notify_cb(struct bt_conn* conn, struct bt_gatt_subscribe_params* params, const void* data, uint16_t length) {
+    if (data == NULL) {
+        return BT_GATT_ITER_STOP;
+    }
+
+    k_work_reschedule(&activity_led_off_work, K_MSEC(50));
+    gpio_pin_set_dt(&led0, true);
+
+    if (scanning) {
+        scanning = false;
+        k_work_submit(&scan_stop_work);
+    } else {
+        k_work_reschedule(&scan_start_work, K_MSEC(SCAN_DELAY_MS));
+    }
+
+    switch_pro_ble_reports++;
+    switch2_pro_set_input_from_packet((const uint8_t*) data, length);
+    return BT_GATT_ITER_CONTINUE;
+}
+
+static uint8_t switch2_pro_ack_notify_cb(struct bt_conn* conn, struct bt_gatt_subscribe_params* params, const void* data, uint16_t length) {
+    if (data == NULL) {
+        return BT_GATT_ITER_STOP;
+    }
+
+    uint8_t conn_idx = bt_conn_index(conn);
+    switch2_pro_client* client = &switch2_pro_clients[conn_idx];
+    const uint8_t* value = (const uint8_t*) data;
+    if (length < 4) {
+        return BT_GATT_ITER_CONTINUE;
+    }
+
+    uint8_t cmd = value[0];
+    uint8_t sub = value[3];
+    LOG_INF("switch2_pro ack cmd=0x%02x sub=0x%02x state=%u len=%u", cmd, sub, (uint8_t) client->init_state, length);
+    switch2_flight_record(Switch2FlightEvent::BLE_INIT, cmd, sub, (uint8_t) client->init_state, (uint8_t) MIN(length, (uint16_t) 255), value, length);
+    client->init_cmd_in_flight = false;
+
+    if (cmd == 0x02 && client->init_state == Switch2ProInitState::READ_INFO) {
+        client->init_state = Switch2ProInitState::PAIR_STEP1;
+    } else if (cmd == 0x15 && sub == 0x01 && client->init_state == Switch2ProInitState::PAIR_STEP1) {
+        client->init_state = Switch2ProInitState::PAIR_STEP2;
+    } else if (cmd == 0x15 && sub == 0x04 && client->init_state == Switch2ProInitState::PAIR_STEP2) {
+        client->init_state = Switch2ProInitState::PAIR_STEP3;
+    } else if (cmd == 0x15 && sub == 0x02 && client->init_state == Switch2ProInitState::PAIR_STEP3) {
+        client->init_state = Switch2ProInitState::PAIR_STEP4;
+    } else if (cmd == 0x15 && sub == 0x03 && client->init_state == Switch2ProInitState::PAIR_STEP4) {
+        client->init_state = Switch2ProInitState::SET_LED;
+    } else if (cmd == 0x09 && client->init_state == Switch2ProInitState::SET_LED) {
+        client->init_state = Switch2ProInitState::DONE;
+        LOG_INF("switch2_pro init done");
+        k_work_cancel_delayable(&switch2_pro_init_retry_work);
+    }
+    if (client->init_state != Switch2ProInitState::DONE) {
+        k_work_reschedule(&switch2_pro_init_retry_work, K_MSEC(500));
+    }
+
+    return BT_GATT_ITER_CONTINUE;
+}
+
+static void switch2_pro_mtu_exchange_cb(struct bt_conn* conn, uint8_t err, struct bt_gatt_exchange_params* params) {
+    uint8_t conn_idx = bt_conn_index(conn);
+    switch2_pro_client* client = &switch2_pro_clients[conn_idx];
+    if (err) {
+        LOG_WRN("switch2_pro mtu exchange err=%u state=%u mtu=%u", err, (uint8_t) client->init_state, bt_gatt_get_mtu(conn));
+    } else {
+        LOG_INF("switch2_pro mtu exchange ok mtu=%u", bt_gatt_get_mtu(conn));
+    }
+    k_work_reschedule(&switch2_pro_init_retry_work, K_MSEC(500));
+}
+
+static bool switch2_pro_write_cmd(switch2_pro_client* client, const uint8_t* data, uint16_t len) {
+    if (client == NULL || client->conn == NULL || client->cmd_value_handle == 0) {
+        return false;
+    }
+    int err = bt_gatt_write_without_response(client->conn, client->cmd_value_handle, data, len, false);
+    if (err) {
+        LOG_WRN("switch2_pro cmd write failed err=%d state=%u", err, (uint8_t) client->init_state);
+        return false;
+    }
+    LOG_INF("switch2_pro cmd write state=%u len=%u cmd=0x%02x sub=0x%02x", (uint8_t) client->init_state, len, data[0], len > 3 ? data[3] : 0);
+    switch2_flight_record(Switch2FlightEvent::BLE_INIT, data[0], len > 3 ? data[3] : 0, (uint8_t) client->init_state, (uint8_t) MIN(len, (uint16_t) 255), data, len);
+    client->init_cmd_in_flight = true;
+    client->init_cmd_sent_at = k_uptime_get();
+    return true;
+}
+
+static void switch2_pro_send_init_cmd(switch2_pro_client* client) {
+    switch (client->init_state) {
+        case Switch2ProInitState::READ_INFO: {
+            uint8_t cmd[] = { 0x02, 0x91, 0x01, 0x04, 0x00, 0x08, 0x00, 0x00, 0x40, 0x7e, 0x00, 0x00, 0x00, 0x30, 0x01, 0x00 };
+            switch2_pro_write_cmd(client, cmd, sizeof(cmd));
+            break;
+        }
+        case Switch2ProInitState::PAIR_STEP1: {
+            bt_addr_le_t local_addr;
+            size_t count = 1;
+            bt_id_get(&local_addr, &count);
+            uint8_t cmd[] = {
+                0x15, 0x91, 0x01, 0x01, 0x00, 0x0e, 0x00, 0x00, 0x00, 0x02,
+                local_addr.a.val[0], local_addr.a.val[1], local_addr.a.val[2], local_addr.a.val[3], local_addr.a.val[4], local_addr.a.val[5],
+                (uint8_t) (local_addr.a.val[0] - 1), local_addr.a.val[1], local_addr.a.val[2], local_addr.a.val[3], local_addr.a.val[4], local_addr.a.val[5],
+            };
+            switch2_pro_write_cmd(client, cmd, sizeof(cmd));
+            break;
+        }
+        case Switch2ProInitState::PAIR_STEP2: {
+            uint8_t cmd[] = {
+                0x15, 0x91, 0x01, 0x04, 0x00, 0x11, 0x00, 0x00, 0x00,
+                0xea, 0xbd, 0x47, 0x13, 0x89, 0x35, 0x42, 0xc6,
+                0x79, 0xee, 0x07, 0xf2, 0x53, 0x2c, 0x6c, 0x31,
+            };
+            switch2_pro_write_cmd(client, cmd, sizeof(cmd));
+            break;
+        }
+        case Switch2ProInitState::PAIR_STEP3: {
+            uint8_t cmd[] = {
+                0x15, 0x91, 0x01, 0x02, 0x00, 0x11, 0x00, 0x00, 0x00,
+                0x40, 0xb0, 0x8a, 0x5f, 0xcd, 0x1f, 0x9b, 0x41,
+                0x12, 0x5c, 0xac, 0xc6, 0x3f, 0x38, 0xa0, 0x73,
+            };
+            switch2_pro_write_cmd(client, cmd, sizeof(cmd));
+            break;
+        }
+        case Switch2ProInitState::PAIR_STEP4: {
+            uint8_t cmd[] = { 0x15, 0x91, 0x01, 0x03, 0x00, 0x01, 0x00, 0x00, 0x00 };
+            switch2_pro_write_cmd(client, cmd, sizeof(cmd));
+            break;
+        }
+        case Switch2ProInitState::SET_LED: {
+            uint8_t cmd[] = { 0x09, 0x91, 0x01, 0x07, 0x00, 0x08, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+            switch2_pro_write_cmd(client, cmd, sizeof(cmd));
+            break;
+        }
+        default:
+            break;
+    }
+}
+
+static void switch2_pro_init_retry_work_fn(struct k_work* work) {
+    bool retry_needed = false;
+    for (uint8_t i = 0; i < CONFIG_BT_MAX_CONN; i++) {
+        switch2_pro_client* client = &switch2_pro_clients[i];
+        if (client->conn == NULL ||
+            client->init_state == Switch2ProInitState::IDLE ||
+            client->init_state == Switch2ProInitState::DONE) {
+            continue;
+        }
+        retry_needed = true;
+        if (client->init_cmd_in_flight &&
+            k_uptime_get() - client->init_cmd_sent_at < SWITCH2_PRO_INIT_ACK_TIMEOUT_MS) {
+            continue;
+        }
+        if (client->init_cmd_in_flight) {
+            LOG_WRN("switch2_pro init ack timeout state=%u", (uint8_t) client->init_state);
+            client->init_cmd_in_flight = false;
+        }
+        LOG_INF("switch2_pro retry init state=%u", (uint8_t) client->init_state);
+        switch2_pro_send_init_cmd(client);
+    }
+    if (retry_needed) {
+        k_work_reschedule(&switch2_pro_init_retry_work, K_MSEC(1000));
+    }
+}
+
+static void switch2_pro_connect_att(struct bt_conn* conn) {
+    uint8_t conn_idx = bt_conn_index(conn);
+    switch2_pro_client* client = &switch2_pro_clients[conn_idx];
+    memset(client, 0, sizeof(*client));
+    client->conn = bt_conn_ref(conn);
+    client->conn_idx = conn_idx;
+    client->input_value_handle = SWITCH2_PRO_INPUT_VALUE_HANDLE;
+    client->output_value_handle = SWITCH2_PRO_OUTPUT_VALUE_HANDLE;
+    client->cmd_value_handle = SWITCH2_PRO_CMD_VALUE_HANDLE;
+    client->init_state = Switch2ProInitState::READ_INFO;
+
+    memset(&client->ack_subscribe_params, 0, sizeof(client->ack_subscribe_params));
+    client->ack_subscribe_params.notify = switch2_pro_ack_notify_cb;
+    client->ack_subscribe_params.value = BT_GATT_CCC_NOTIFY;
+    client->ack_subscribe_params.value_handle = SWITCH2_PRO_ACK_VALUE_HANDLE;
+    client->ack_subscribe_params.ccc_handle = SWITCH2_PRO_ACK_CCC_HANDLE;
+
+    int err = bt_gatt_subscribe(conn, &client->ack_subscribe_params);
+    if (err && err != -EALREADY) {
+        LOG_WRN("switch2_pro ack subscribe err=%d", err);
+        k_work_reschedule(&scan_start_work, K_MSEC(SCAN_DELAY_MS));
+        return;
+    }
+
+    memset(&client->input_subscribe_params, 0, sizeof(client->input_subscribe_params));
+    client->input_subscribe_params.notify = switch2_pro_notify_cb;
+    client->input_subscribe_params.value = BT_GATT_CCC_NOTIFY;
+    client->input_subscribe_params.value_handle = SWITCH2_PRO_INPUT_VALUE_HANDLE;
+    client->input_subscribe_params.ccc_handle = SWITCH2_PRO_INPUT_CCC_HANDLE;
+
+    err = bt_gatt_subscribe(conn, &client->input_subscribe_params);
+    if (err && err != -EALREADY) {
+        LOG_WRN("switch2_pro input subscribe err=%d", err);
+        k_work_reschedule(&scan_start_work, K_MSEC(SCAN_DELAY_MS));
+        return;
+    }
+
+    LOG_INF("switch2_pro direct ATT subscribed input=0x%04x ack=0x%04x", SWITCH2_PRO_INPUT_VALUE_HANDLE, SWITCH2_PRO_ACK_VALUE_HANDLE);
+    switch_pro_input_enabled = true;
+    switch_pro_hogp_ready_events++;
+    device_connected_callback(conn_idx << 8, 0x057e, 0x2069, 0);
+    memset(&client->mtu_exchange_params, 0, sizeof(client->mtu_exchange_params));
+    client->mtu_exchange_params.func = switch2_pro_mtu_exchange_cb;
+    err = bt_gatt_exchange_mtu(conn, &client->mtu_exchange_params);
+    if (err) {
+        LOG_WRN("switch2_pro mtu exchange start err=%d mtu=%u", err, bt_gatt_get_mtu(conn));
+        k_work_reschedule(&switch2_pro_init_retry_work, K_MSEC(1500));
+    }
+}
+
 static int64_t button_pressed_at;
 
 static void button_cb(const struct device* dev, struct gpio_callback* cb, uint32_t pins) {
@@ -1310,7 +2245,19 @@ static void connected(struct bt_conn* conn, uint8_t conn_err) {
     if (is_switch_pro_mode()) {
         switch_pro_bt_connected_events++;
     }
+    switch2_flight_record(Switch2FlightEvent::BT_CONNECT, conn_err, 0, 0, 0);
 
+    uint8_t conn_idx = bt_conn_index(conn);
+    if (pending_switch2_pro_valid && bt_addr_le_eq(bt_conn_get_dst(conn), &pending_switch2_pro_addr)) {
+        pending_switch2_pro_valid = false;
+        conn_kinds[conn_idx] = ConnKind::SWITCH2_PRO;
+        LOG_INF("Switch 2 Pro connected; starting direct ATT setup");
+        switch2_flight_record(Switch2FlightEvent::BT_CONNECT, conn_err, conn_idx, (uint8_t) ConnKind::SWITCH2_PRO, 0);
+        switch2_pro_connect_att(conn);
+        return;
+    }
+
+    conn_kinds[conn_idx] = ConnKind::HOGP;
     CHK(bt_conn_set_security(conn, BT_SECURITY_L2));
 }
 
@@ -1325,8 +2272,20 @@ static void disconnected(struct bt_conn* conn, uint8_t reason) {
         switch_pro_bt_disconnected_events++;
         switch_pro_last_disconnect_reason = reason;
     }
+    switch2_flight_record(Switch2FlightEvent::BT_DISCONNECT, reason, bt_conn_index(conn), (uint8_t) conn_kinds[bt_conn_index(conn)], 0);
 
     uint8_t conn_idx = bt_conn_index(conn);
+
+    if (conn_kinds[conn_idx] == ConnKind::SWITCH2_PRO) {
+        switch2_pro_client* client = &switch2_pro_clients[conn_idx];
+        if (client->conn != NULL) {
+            bt_gatt_unsubscribe(conn, &client->input_subscribe_params);
+            bt_gatt_unsubscribe(conn, &client->ack_subscribe_params);
+            bt_conn_unref(client->conn);
+        }
+        memset(client, 0, sizeof(*client));
+    }
+    conn_kinds[conn_idx] = ConnKind::NONE;
 
     if (bt_hogp_assign_check(&hogps[conn_idx])) {
         bt_hogp_release(&hogps[conn_idx]);
@@ -1347,10 +2306,12 @@ static void security_changed(struct bt_conn* conn, bt_security_t level, enum bt_
 
     if (!err) {
         LOG_INF("%s, level=%u.", addr, level);
+        switch2_flight_record(Switch2FlightEvent::BT_SECURITY, level, 0, (uint8_t) conn_kinds[bt_conn_index(conn)], 0);
         peers_only = true;
         gatt_discover(conn);
     } else {
         LOG_ERR("security failed: %s, level=%u, err=%d", addr, level, err);
+        switch2_flight_record(Switch2FlightEvent::BT_SECURITY, level, err, (uint8_t) conn_kinds[bt_conn_index(conn)], 0);
     }
 }
 
@@ -1519,12 +2480,17 @@ static void pairing_complete(struct bt_conn* conn, bool bonded) {
     char addr[BT_ADDR_LE_STR_LEN];
     bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
     LOG_INF("%s, bonded=%d", addr, bonded);
+    switch2_flight_record(Switch2FlightEvent::BT_PAIRING, bonded, 0, 0, 0);
+    if (bonded && is_switch2_pro_ble_mode()) {
+        switch2_bond_keys_snapshot_now();
+    }
 }
 
 static void pairing_failed(struct bt_conn* conn, enum bt_security_err reason) {
     char addr[BT_ADDR_LE_STR_LEN];
     bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
     LOG_ERR("%s, reason %d", addr, reason);
+    switch2_flight_record(Switch2FlightEvent::BT_PAIRING, 0xff, reason, 0, 0);
 }
 
 static struct bt_conn_auth_cb conn_auth_callbacks = {
@@ -1544,13 +2510,22 @@ static int set_report_cb(const struct device* dev, struct usb_setup_packet* setu
 
     LOG_INF("report_id=%d, report_type=%d, len=%d", request_value[0], request_value[1], *len);
     LOG_HEXDUMP_DBG((*data), (uint32_t) *len, "");
+    if (dev == hid_dev0 && is_switch2_pro_mode()) {
+        switch2_flight_record(Switch2FlightEvent::SET_REPORT, request_value[0], request_value[1], (uint8_t) MIN(*len, (int32_t) 255), 0, *data, (uint8_t) MIN(*len, (int32_t) 255));
+    }
 
     struct set_report_type buf;
     if ((request_value[0] > 0) && (*len > 0)) {
-        if ((dev == hid_dev0) && set_report0_synchronous(request_value[0])) {
+        bool config_report = request_value[0] == REPORT_ID_CONFIG && (dev == hid_dev1 || (dev == hid_dev0 && is_switch2_pro_mode()));
+        if ((dev == hid_dev0) && !config_report && set_report0_synchronous(request_value[0])) {
             handle_set_report0(request_value[0], (*data) + 1, (*len) - 1);
         } else {
-            if (dev == hid_dev0) {
+            if (config_report) {
+                buf.interface = 1;
+                k_mutex_lock(&get_report_mutex, K_FOREVER);
+                get_report_response_ready = false;
+                k_mutex_unlock(&get_report_mutex);
+            } else if (dev == hid_dev0) {
                 buf.interface = 0;
             } else if (dev == hid_dev1) {
                 buf.interface = 1;
@@ -1576,11 +2551,13 @@ static int get_report_cb(const struct device* dev, struct usb_setup_packet* setu
     sys_put_le16(setup->wValue, request_value);
 
     LOG_INF("report_id=%d, %d, len=%d", request_value[0], request_value[1], *len);
+    if (dev == hid_dev0 && is_switch2_pro_mode()) {
+        switch2_flight_record(Switch2FlightEvent::GET_REPORT, request_value[0], request_value[1], (uint8_t) MIN(*len, (int32_t) 255), 0);
+    }
 
     *data[0] = request_value[0];
-    if (dev == hid_dev0) {
-        *len = handle_get_report0(request_value[0], (*data) + 1, CONFIG_SIZE);
-    } else if (dev == hid_dev1) {
+    bool config_report = request_value[0] == REPORT_ID_CONFIG && (dev == hid_dev1 || (dev == hid_dev0 && is_switch2_pro_mode()));
+    if (config_report) {
         k_mutex_lock(&get_report_mutex, K_FOREVER);
         if (get_report_response_ready) {
             memcpy((*data) + 1, get_report_buf, CONFIG_SIZE);
@@ -1591,6 +2568,8 @@ static int get_report_cb(const struct device* dev, struct usb_setup_packet* setu
         }
         get_report_response_ready = false;
         k_mutex_unlock(&get_report_mutex);
+    } else if (dev == hid_dev0) {
+        *len = handle_get_report0(request_value[0], (*data) + 1, CONFIG_SIZE);
     }
     (*len)++;
 
@@ -1605,6 +2584,9 @@ static void int_out_ready_cb0(const struct device* dev) {
     static struct report_type buf;
     uint32_t len;
     if (CHK(hid_int_ep_read(hid_dev0, buf.data, sizeof(buf.data), &len))) {
+        if (is_switch2_pro_mode()) {
+            switch2_flight_record(Switch2FlightEvent::INT_OUT, buf.data[0], len > 1 ? buf.data[1] : 0, len > 2 ? buf.data[2] : 0, len > 3 ? buf.data[3] : 0, buf.data, (uint8_t) MIN(len, (uint32_t) 255));
+        }
         if (is_switch_pro_mode() && switch_pro_handle_output_report(buf.data, len)) {
             switch_pro_host_reports++;
             return;
@@ -1627,6 +2609,105 @@ static void int_in_ready_cb1(const struct device* dev) {
     k_sem_give(&usb_sem1);
 }
 
+#if CONFIG_USB_HID_DEVICE_COUNT == 1
+static void switch2_vendor_ep_cb(uint8_t ep, enum usb_dc_ep_cb_status_code cb_status) {
+    if (ep == SWITCH2_VENDOR_IN_EP && cb_status == USB_DC_EP_DATA_IN) {
+        k_sem_give(&switch2_vendor_in_sem);
+        return;
+    }
+
+    if (ep != SWITCH2_VENDOR_OUT_EP || cb_status != USB_DC_EP_DATA_OUT) {
+        return;
+    }
+
+    static uint8_t buf[64];
+    uint32_t len = 0;
+    if (!CHK(usb_read(SWITCH2_VENDOR_OUT_EP, buf, sizeof(buf), &len)) || len == 0) {
+        return;
+    }
+
+    switch2_flight_record(Switch2FlightEvent::INT_OUT, buf[0], len > 1 ? buf[1] : 0, len > 2 ? buf[2] : 0, len > 3 ? buf[3] : 0, buf, (uint8_t) MIN(len, (uint32_t) 255));
+    if (switch2_pro_handle_output_report(buf, (uint8_t) MIN(len, (uint32_t) 255))) {
+        switch_pro_host_reports++;
+    } else {
+        switch_pro_host_report_drops++;
+    }
+}
+
+struct switch2_vendor_config {
+    struct usb_if_descriptor if0;
+    struct usb_ep_descriptor out_ep;
+    struct usb_ep_descriptor in_ep;
+} __packed;
+
+USBD_CLASS_DESCR_DEFINE(primary, 1) struct switch2_vendor_config switch2_vendor_desc = {
+    .if0 = {
+        .bLength = sizeof(struct usb_if_descriptor),
+        .bDescriptorType = USB_DESC_INTERFACE,
+        .bInterfaceNumber = 1,
+        .bAlternateSetting = 0,
+        .bNumEndpoints = 2,
+        .bInterfaceClass = USB_BCC_VENDOR,
+        .bInterfaceSubClass = 0,
+        .bInterfaceProtocol = 0,
+        .iInterface = 0,
+    },
+    .out_ep = {
+        .bLength = sizeof(struct usb_ep_descriptor),
+        .bDescriptorType = USB_DESC_ENDPOINT,
+        .bEndpointAddress = SWITCH2_VENDOR_OUT_EP,
+        .bmAttributes = USB_DC_EP_BULK,
+        .wMaxPacketSize = sys_cpu_to_le16(SWITCH2_VENDOR_EP_MPS),
+        .bInterval = 0,
+    },
+    .in_ep = {
+        .bLength = sizeof(struct usb_ep_descriptor),
+        .bDescriptorType = USB_DESC_ENDPOINT,
+        .bEndpointAddress = SWITCH2_VENDOR_IN_EP,
+        .bmAttributes = USB_DC_EP_BULK,
+        .wMaxPacketSize = sys_cpu_to_le16(SWITCH2_VENDOR_EP_MPS),
+        .bInterval = 0,
+    },
+};
+
+static struct usb_ep_cfg_data switch2_vendor_ep_cfg[] = {
+    {
+        .ep_cb = switch2_vendor_ep_cb,
+        .ep_addr = SWITCH2_VENDOR_OUT_EP,
+    },
+    {
+        .ep_cb = switch2_vendor_ep_cb,
+        .ep_addr = SWITCH2_VENDOR_IN_EP,
+    },
+};
+
+static void switch2_vendor_interface_config(struct usb_desc_header* head, uint8_t bInterfaceNumber) {
+    ARG_UNUSED(head);
+    switch2_vendor_desc.if0.bInterfaceNumber = bInterfaceNumber;
+}
+
+static int switch2_vendor_handler(struct usb_setup_packet* setup, int32_t* len, uint8_t** data) {
+    ARG_UNUSED(setup);
+    ARG_UNUSED(len);
+    ARG_UNUSED(data);
+    return -ENOTSUP;
+}
+
+USBD_CFG_DATA_DEFINE(primary, switch2_vendor) struct usb_cfg_data switch2_vendor_config = {
+    .usb_device_description = NULL,
+    .interface_descriptor = &switch2_vendor_desc.if0,
+    .interface_config = switch2_vendor_interface_config,
+    .cb_usb_status = NULL,
+    .interface = {
+        .class_handler = NULL,
+        .vendor_handler = switch2_vendor_handler,
+        .custom_handler = NULL,
+    },
+    .num_endpoints = ARRAY_SIZE(switch2_vendor_ep_cfg),
+    .endpoint = switch2_vendor_ep_cfg,
+};
+#endif
+
 static const struct hid_ops ops0 = {
     .get_report = get_report_cb,
     .set_report = set_report_cb,
@@ -1641,11 +2722,29 @@ static const struct hid_ops ops1 = {
 };
 
 static bool do_send_report(uint8_t interface, const uint8_t* report_with_id, uint8_t len) {
+    if (is_switch2_pro_mode() && interface == 0 && len > 0 && report_with_id[0] == 0x09) {
+        memcpy(switch_pro_current_input, report_with_id, MIN((uint8_t) sizeof(switch_pro_current_input), len));
+        switch_pro_current_input[1] = switch_pro_timer++;
+        switch_pro_current_input[12] = (switch2_pro_feature_flags & 0x20) ? 0x38 : 0x30;
+        switch_pro_last_input_ms = k_uptime_get();
+        bool sent = CHK(hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL));
+        switch2_flight_record_send_input(sent);
+        if (sent) {
+            switch_pro_mapped_writes++;
+        } else {
+            switch_pro_mapped_write_fails++;
+        }
+        return sent;
+    }
+
     if (is_switch_pro_mode() && interface == 0 && len > 0 && report_with_id[0] == 0x30) {
         switch_pro_translate_report(report_with_id, len);
         switch_pro_current_input[1] = switch_pro_timer++;
         switch_pro_last_input_ms = k_uptime_get();
         bool sent = CHK(hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL));
+        if (is_switch2_pro_mode()) {
+            switch2_flight_record_send_input(sent);
+        }
         if (sent) {
             switch_pro_mapped_writes++;
         } else {
@@ -1704,7 +2803,11 @@ static void leds_init() {
 static void status_cb(enum usb_dc_status_code status, const uint8_t* param) {
     if (status == USB_DC_SOF) {
         atomic_set_bit(tick_pending, 0);
-    } else if (status == USB_DC_RESET || status == USB_DC_CONFIGURED || status == USB_DC_SUSPEND) {
+        return;
+    }
+
+    switch2_flight_record(Switch2FlightEvent::USB_STATUS, status, 0, 0, 0);
+    if (status == USB_DC_RESET || status == USB_DC_CONFIGURED || status == USB_DC_SUSPEND) {
         if (is_switch_pro_mode()) {
             switch_pro_reset_session();
         }
@@ -1719,6 +2822,12 @@ static void descriptor_init() {
         struct usb_device_descriptor* device_descriptor = __usb_descriptor_start;
         device_descriptor->idVendor = our_descriptor->vid;
         device_descriptor->idProduct = our_descriptor->pid;
+        if (is_switch2_pro_mode()) {
+            device_descriptor->bDeviceClass = 0xef;
+            device_descriptor->bDeviceSubClass = 0x02;
+            device_descriptor->bDeviceProtocol = 0x01;
+            device_descriptor->bcdDevice = sys_cpu_to_le16(0x0200);
+        }
     }
 }
 
@@ -1729,16 +2838,19 @@ static void usb_init() {
         return;
     }
 
+    usb_hid_register_device(hid_dev0, our_descriptor->descriptor, our_descriptor->descriptor_length, &ops0);
+#if CONFIG_USB_HID_DEVICE_COUNT > 1
     hid_dev1 = device_get_binding("HID_1");
     if (hid_dev1 == NULL) {
         LOG_ERR("Cannot get USB HID Device 1.");
         return;
     }
-
-    usb_hid_register_device(hid_dev0, our_descriptor->descriptor, our_descriptor->descriptor_length, &ops0);
     usb_hid_register_device(hid_dev1, config_report_descriptor, config_report_descriptor_length, &ops1);
+#endif
     CHK(usb_hid_init(hid_dev0));
+#if CONFIG_USB_HID_DEVICE_COUNT > 1
     CHK(usb_hid_init(hid_dev1));
+#endif
     CHK(usb_enable(status_cb));
 }
 
@@ -1771,6 +2883,22 @@ static int remapper_settings_set(const char* name, size_t len, settings_read_cb 
             return bytes_read;
         }
         return bytes_read == sizeof(switch_pro_saved_diag) ? 0 : -EINVAL;
+    }
+
+    if (!strcmp(name, "switch2_flight")) {
+        if (len != sizeof(switch2_flight)) {
+            return -EINVAL;
+        }
+
+        int bytes_read = read_cb(cb_arg, &switch2_flight, len);
+        if (bytes_read < 0) {
+            return bytes_read;
+        }
+        if (bytes_read != sizeof(switch2_flight)) {
+            return -EINVAL;
+        }
+        switch2_flight_reset_if_invalid();
+        return 0;
     }
 
     if (strcmp(name, "config")) {
@@ -1807,6 +2935,7 @@ static struct settings_handler our_settings_handlers = {
 
 void do_persist_config(uint8_t* buffer) {
     LOG_INF("");
+    switch2_flight_record(Switch2FlightEvent::CONFIG_SET, our_descriptor_number, buffer[0], buffer[1], buffer[2], buffer, 8);
     CHK(settings_save_one("remapper/config", buffer, PERSISTED_CONFIG_SIZE));
 }
 
@@ -1833,6 +2962,41 @@ void get_switch_pro_diagnostics(uint32_t page, uint32_t values[7]) {
     }
 
     memset(values, 0, SWITCH_PRO_DIAG_VALUES * sizeof(uint32_t));
+}
+
+void get_switch2_flight_log_page(uint32_t page, uint8_t out[28], uint8_t* out_len) {
+    uint32_t offset = page * 28;
+    if (offset >= sizeof(switch2_flight)) {
+        *out_len = 0;
+        return;
+    }
+    uint32_t remaining = sizeof(switch2_flight) - offset;
+    *out_len = (uint8_t) (remaining < 28 ? remaining : 28);
+    memcpy(out, (const uint8_t*) &switch2_flight + offset, *out_len);
+}
+
+void get_switch2_bond_keys_page(uint32_t page, uint8_t out[28], uint8_t* out_len) {
+    if (page == 0) {
+        switch2_bond_keys_snapshot_now();
+    }
+
+    uint32_t offset = page * 28;
+    if (offset >= sizeof(switch2_bond_keys)) {
+        *out_len = 0;
+        return;
+    }
+
+    uint32_t remaining = sizeof(switch2_bond_keys) - offset;
+    *out_len = (uint8_t) (remaining < 28 ? remaining : 28);
+    memcpy(out, (const uint8_t*) &switch2_bond_keys + offset, *out_len);
+}
+
+void clear_switch2_flight_log() {
+    memset(&switch2_flight, 0, sizeof(switch2_flight));
+    switch2_flight.magic = SWITCH2_FLIGHT_MAGIC;
+    switch2_flight.version = SWITCH2_FLIGHT_VERSION;
+    switch2_flight_dirty = true;
+    switch2_flight_persist(true);
 }
 
 void pair_new_device() {
@@ -1887,14 +3051,21 @@ int main() {
     my_mutexes_init();
     button_init();
     leds_init();
-    bt_init();
     CHK(settings_subsys_init());
     CHK(settings_register(&our_settings_handlers));
+    bt_init();
     settings_load();
+    switch2_pro_ble_enabled = is_switch2_pro_mode();
+#if CONFIG_USB_HID_DEVICE_COUNT == 1
+    LOG_INF("Switch 2 console USB build: forcing Switch 2 Pro descriptor");
+    our_descriptor_number = 7;
+    switch2_pro_ble_enabled = true;
+#endif
     descriptor_init();
     if (is_switch_pro_mode()) {
         switch_pro_reset_session();
     }
+    switch2_flight_record(Switch2FlightEvent::BOOT, our_descriptor_number, is_switch2_pro_mode(), switch2_pro_ble_enabled, 0);
     usb_init();
     scan_init();
     parse_our_descriptor();
@@ -1926,17 +3097,33 @@ int main() {
             process_mapping(true);
             process_pending = false;
             switch_pro_log_stats();
+            switch2_flight_persist();
         }
         if (!k_sem_take(&usb_sem0, K_NO_WAIT)) {
-            if (!switch_pro_send_response() && !send_report(do_send_report) && !switch_pro_send_input_heartbeat()) {
+            if (!send_report(do_send_report) && !switch_pro_send_input_heartbeat()) {
                 k_sem_give(&usb_sem0);
             }
         }
+#if CONFIG_USB_HID_DEVICE_COUNT == 1
+        if (!k_sem_take(&switch2_vendor_in_sem, K_NO_WAIT)) {
+            if (!switch_pro_send_response()) {
+                k_sem_give(&switch2_vendor_in_sem);
+            }
+        }
+#else
+        if (!k_sem_take(&usb_sem0, K_NO_WAIT)) {
+            if (!switch_pro_send_response()) {
+                k_sem_give(&usb_sem0);
+            }
+        }
+#endif
+#if CONFIG_USB_HID_DEVICE_COUNT > 1
         if (!k_sem_take(&usb_sem1, K_NO_WAIT)) {
             if (!send_monitor_report(do_send_report)) {
                 k_sem_give(&usb_sem1);
             }
         }
+#endif
 
         if (!k_msgq_get(&set_report_q, &set_report_item, K_NO_WAIT)) {
             if (set_report_item.interface == 0) {
