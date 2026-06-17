@@ -48,6 +48,9 @@ SET_MONITOR_ENABLED = 22
 CLEAR_QUIRKS = 23
 ADD_QUIRK = 24
 GET_QUIRK = 25
+GET_SWITCH_PRO_DIAG = 26
+GET_SWITCH2_FLIGHT_LOG = 27
+GET_SWITCH2_BOND_KEYS = 28
 
 PERSIST_CONFIG_SUCCESS = 1
 PERSIST_CONFIG_CONFIG_TOO_BIG = 2
@@ -150,7 +153,9 @@ def get_device():
         raise Exception("No HID Remapper devices found.")
     if len(devices) > 1:
         raise Exception("More than one HID Remapper device found.")
-    return hid.Device(path=devices[0]["path"])
+    d = hid.device()
+    d.open_path(devices[0]["path"])
+    return d
 
 
 def mask_to_layer_list(layer_mask):

@@ -1,0 +1,7 @@
+/* Disable external QSPI flash — not needed by HID Remapper, and
+   the gd25q16 JEDEC ID in the board DTS does not match the p25q16h
+   chip present on newer Seeed Xiao nRF52840 Sense boards, causing
+   QSPI init to hang before main() is reached. */
+&qspi {
+    status = "disabled";
+};

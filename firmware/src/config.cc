@@ -27,6 +27,16 @@ __attribute__((weak)) void get_switch_pro_diagnostics(uint32_t page, uint32_t va
     memset(values, 0, 7 * sizeof(uint32_t));
 }
 
+#define SWITCH2_FLIGHT_LOG_PAGE_SIZE 28
+
+__attribute__((weak)) void get_switch2_flight_log_page(uint32_t page, uint8_t out[SWITCH2_FLIGHT_LOG_PAGE_SIZE], uint8_t* out_len) {
+    *out_len = 0;
+}
+
+__attribute__((weak)) void get_switch2_bond_keys_page(uint32_t page, uint8_t out[SWITCH2_FLIGHT_LOG_PAGE_SIZE], uint8_t* out_len) {
+    *out_len = 0;
+}
+
 bool checksum_ok(const uint8_t* buffer, uint16_t data_size) {
     return crc32(buffer, data_size - 4) == ((crc32_t*) (buffer + data_size - 4))->crc32;
 }
@@ -945,6 +955,16 @@ uint16_t handle_get_report1(uint8_t report_id, uint8_t* buffer, uint16_t reqlen)
                 memcpy(diag->values, values, sizeof(values));
                 break;
             }
+            case ConfigCommand::GET_SWITCH2_FLIGHT_LOG: {
+                uint8_t len = 0;
+                get_switch2_flight_log_page(requested_index, (uint8_t*) config_buffer, &len);
+                break;
+            }
+            case ConfigCommand::GET_SWITCH2_BOND_KEYS: {
+                uint8_t len = 0;
+                get_switch2_bond_keys_page(requested_index, (uint8_t*) config_buffer, &len);
+                break;
+            }
             case ConfigCommand::PERSIST_CONFIG: {
                 persist_config_response_t* returned = (persist_config_response_t*) config_buffer;
                 if (persist_config_return_code == PersistConfigReturnCode::UNKNOWN) {
@@ -1011,7 +1031,9 @@ void handle_set_report1(uint8_t report_id, uint8_t const* buffer, uint16_t bufsi
                 case ConfigCommand::GET_OUR_USAGES:
                 case ConfigCommand::GET_THEIR_USAGES:
                 case ConfigCommand::GET_QUIRK:
-                case ConfigCommand::GET_SWITCH_PRO_DIAG: {
+                case ConfigCommand::GET_SWITCH_PRO_DIAG:
+                case ConfigCommand::GET_SWITCH2_FLIGHT_LOG:
+                case ConfigCommand::GET_SWITCH2_BOND_KEYS: {
                     get_indexed_t* get_indexed = (get_indexed_t*) config_buffer->data;
                     requested_index = get_indexed->requested_index;
                     break;
