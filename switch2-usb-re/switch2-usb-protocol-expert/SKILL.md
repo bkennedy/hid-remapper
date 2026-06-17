@@ -122,7 +122,8 @@ side, byte 5 = special/new buttons.
 | 1 | `0x02` | Capture |
 | 2 | `0x04` | GR (right back grip — new Switch 2 button) |
 | 3 | `0x08` | GL (left back grip — new Switch 2 button) |
-| 4–7 | — | Unknown (not observed) |
+| 4 | `0x10` | Chat (new Switch 2 button) |
+| 5–7 | — | Unknown (not observed) |
 
 ## Interface 0: HID output report (EP 0x01 OUT) — LOW confidence, open question
 

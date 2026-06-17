@@ -223,7 +223,8 @@ byte 4 = left side, byte 5 = special/new.
 | 1 | `0x02` | Capture |
 | 2 | `0x04` | GR (right back grip — new Switch 2 button) |
 | 3 | `0x08` | GL (left back grip — new Switch 2 button) |
-| 4–7 | — | Unknown (always zero in all captures) |
+| 4 | `0x10` | Chat (new Switch 2 button) |
+| 5–7 | — | Unknown (not observed) |
 
 **Relationship to original Switch Pro Controller format:** The original Pro
 Controller uses 49-byte HID reports with report ID `0x30`. The Switch 2 Pro
