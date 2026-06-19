@@ -549,8 +549,43 @@ static void srumble_apply_hi(uint8_t code, SwitchRumbleState* s) {
     s->hi_freq = srumble_apply(c->fm, c->fm_off, s->hi_freq,  0.0f, -2.0f, 2.0f);
 }
 
+// Xbox HD-rumble -> ERM mapping parameters.
+//
+// The Xbox Bluetooth rumble output report (0x03) carries each motor magnitude
+// as a single byte in the range 0-100, NOT 0-255 (see hid-microsoft / xpadneo).
+// The previous code scaled to 255, so any decoded amplitude above ~0.54 pegged
+// the field to its 100 ceiling: the entire upper ~45% of the range collapsed to
+// "full", which is what made rumble feel uniformly heavy. Mapping into 0-100
+// restores the full dynamic range.
+//
+// Xbox grip motors are ERM (eccentric rotating mass) and have a start-up
+// deadzone: below some drive level the weight never spins, so weak/short
+// effects vanish entirely. Instead of the old x^1.5 down-curve (which pushed
+// small amplitudes further toward zero and lost them), lift any active effect
+// to at least XBOX_RUMBLE_FLOOR so it clears the deadzone, then apply a near-
+// linear gamma for headroom. All three are tunable by feel on hardware.
+static const float XBOX_RUMBLE_MAX   = 100.0f;  // Xbox BT rumble report field range
+static const float XBOX_RUMBLE_FLOOR = 18.0f;   // min drive for any active effect (ERM deadzone)
+static const float XBOX_RUMBLE_GAMMA = 1.1f;    // >1 slightly expands the top end; 1.0 = linear
+
+// Map a linear [0,1] HD-rumble band amplitude to an Xbox BLE motor magnitude
+// [0,100]. Zero stays zero; any active effect is lifted to at least the floor.
+static uint8_t srumble_to_xbox(float lin) {
+    if (lin <= 0.0f) {
+        return 0;
+    }
+    if (lin > 1.0f) {
+        lin = 1.0f;
+    }
+    float scaled = XBOX_RUMBLE_FLOOR + (XBOX_RUMBLE_MAX - XBOX_RUMBLE_FLOOR) * powf(lin, XBOX_RUMBLE_GAMMA);
+    if (scaled > XBOX_RUMBLE_MAX) {
+        scaled = XBOX_RUMBLE_MAX;
+    }
+    return (uint8_t)(scaled + 0.5f);
+}
+
 // Decode 4-byte Switch rumble side packet into the per-side state, then
-// return lo/hi amplitudes scaled to [0, 255] for the Xbox motors.
+// return lo/hi amplitudes scaled to [0, 100] for the Xbox motors.
 static void switch_pro_rumble_decode_side(const uint8_t* side,
                                           SwitchRumbleState* s,
                                           uint8_t* out_lf_amp,
@@ -653,15 +688,13 @@ static void switch_pro_rumble_decode_side(const uint8_t* side,
             break;
     }
 
-    // Convert log2 amplitude to linear [0, 1], then to [0, 255].
-    // Threshold at -7.9375 (matches MissionControl's AmplitudeThreshold).
-    // exp2f gives linear [0,1]; apply x^1.5 to spread weak/strong apart and
-    // bring the overall level down so Xbox ERM motors don't feel uniformly heavy.
-    // x^1.5 at: 6%->1%, 25%->12%, 50%->35%, 100%->100%
+    // Convert log2 amplitude to linear [0, 1], then to an Xbox motor magnitude
+    // [0, 100]. Threshold at -7.9375 (matches MissionControl's AmplitudeThreshold);
+    // exp2f gives linear [0,1]; srumble_to_xbox applies the floor + gamma + scale.
     float lo_lin = (s->lo_amp >= -7.9375f) ? exp2f(s->lo_amp) : 0.0f;
     float hi_lin = (s->hi_amp >= -7.9375f) ? exp2f(s->hi_amp) : 0.0f;
-    *out_lf_amp = (uint8_t)(lo_lin * sqrtf(lo_lin) * 255.0f);
-    *out_hf_amp = (uint8_t)(hi_lin * sqrtf(hi_lin) * 255.0f);
+    *out_lf_amp = srumble_to_xbox(lo_lin);
+    *out_hf_amp = srumble_to_xbox(hi_lin);
 }
 
 static void switch_pro_rumble_write_cb(struct bt_hogp* hogp, struct bt_hogp_rep_info* rep, uint8_t err) {
