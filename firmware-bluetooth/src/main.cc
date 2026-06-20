@@ -1274,9 +1274,11 @@ static void patch_broken_uuids(struct bt_gatt_dm* dm) {
 }
 
 static void discovery_completed_cb(struct bt_gatt_dm* dm, void* context) {
-    LOG_INF("");
     patch_broken_uuids(dm);
-    CHK(bt_hogp_handles_assign(dm, ((struct bt_hogp*) context)));  // XXX disconnect if this fails?
+    int assign_err = bt_hogp_handles_assign(dm, ((struct bt_hogp*) context));
+    if (assign_err) {
+        LOG_WRN("handles_assign failed: %d (incomplete HID discovery)", assign_err);
+    }
     CHK(bt_gatt_dm_data_release(dm));
     k_work_reschedule(&scan_start_work, K_MSEC(SCAN_DELAY_MS));
 }
@@ -1303,6 +1305,30 @@ static void gatt_discover(struct bt_conn* conn) {
         k_work_reschedule(&scan_start_work, K_MSEC(SCAN_DELAY_MS));
     }
 }
+
+// Delay HID discovery briefly after security is established. Running it the
+// instant a bonded reconnect re-encrypts races the controller's GATT server
+// still coming up, so the discovery can return incomplete (missing the HID
+// Control Point), fail handles_assign, and drop the link — making reconnects
+// take several retry cycles ("took a long time"). A short settle delay lets the
+// first discovery find the full service.
+#define DISCOVER_SETTLE_MS 300
+static bool discover_pending[CONFIG_BT_MAX_CONN];
+
+static void discover_one_cb(struct bt_conn* conn, void* data) {
+    uint8_t conn_idx = bt_conn_index(conn);
+    if (discover_pending[conn_idx]) {
+        discover_pending[conn_idx] = false;
+        gatt_discover(conn);
+    }
+}
+
+static void discover_work_fn(struct k_work* work) {
+    // Look up the live connection rather than holding a bt_conn pointer across
+    // the delay, so there is no stale-pointer window if the link drops first.
+    bt_conn_foreach(BT_CONN_TYPE_LE, discover_one_cb, NULL);
+}
+static K_WORK_DELAYABLE_DEFINE(discover_work, discover_work_fn);
 
 static int64_t button_pressed_at;
 
@@ -1361,6 +1387,9 @@ static void disconnected(struct bt_conn* conn, uint8_t reason) {
 
     uint8_t conn_idx = bt_conn_index(conn);
 
+    // Cancel any pending deferred discovery for this slot.
+    discover_pending[conn_idx] = false;
+
     if (bt_hogp_assign_check(&hogps[conn_idx])) {
         bt_hogp_release(&hogps[conn_idx]);
     }
@@ -1381,7 +1410,10 @@ static void security_changed(struct bt_conn* conn, bt_security_t level, enum bt_
     if (!err) {
         LOG_INF("%s, level=%u.", addr, level);
         peers_only = true;
-        gatt_discover(conn);
+        // Defer discovery briefly so the controller's GATT server is fully up
+        // before we traverse it (avoids the incomplete-discovery reconnect race).
+        discover_pending[bt_conn_index(conn)] = true;
+        k_work_reschedule(&discover_work, K_MSEC(DISCOVER_SETTLE_MS));
     } else {
         LOG_ERR("security failed: %s, level=%u, err=%d", addr, level, err);
     }
