@@ -128,6 +128,7 @@ static uint32_t switch_pro_ble_reports = 0;
 static uint32_t switch_pro_ble_report_drops = 0;
 static uint32_t switch_pro_host_reports = 0;
 static uint32_t switch_pro_host_report_drops = 0;
+static uint8_t switch_pro_host_init_logs = 0;
 static uint32_t switch_pro_set_reports = 0;
 static uint32_t switch_pro_translated_reports = 0;
 static uint32_t switch_pro_mapped_writes = 0;
@@ -192,6 +193,7 @@ static void switch_pro_reset_session() {
     switch_pro_last_input_ms = 0;
     switch_pro_last_stats_ms = 0;
     switch_pro_last_button_log_ms = 0;
+    switch_pro_host_init_logs = 0;
     k_msgq_purge(&switch_pro_response_q);
     switch_pro_reset_input();
     switch_pro_reset_axis_diagnostics();
@@ -860,6 +862,16 @@ static bool switch_pro_handle_output_report(const uint8_t* report, uint8_t len) 
         return false;
     }
 
+    if (switch_pro_host_init_logs < 64) {
+        uint8_t b[12] = {};
+        memcpy(b, report, MIN(len, sizeof(b)));
+        LOG_INF("switch_host_out n=%u len=%u data=%02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x enabled=%u",
+                switch_pro_host_init_logs++, len,
+                b[0], b[1], b[2], b[3], b[4], b[5],
+                b[6], b[7], b[8], b[9], b[10], b[11],
+                switch_pro_input_enabled);
+    }
+
     uint8_t report_id = report[0];
     bool has_report_id = true;
 
@@ -1273,24 +1285,49 @@ static void patch_broken_uuids(struct bt_gatt_dm* dm) {
     }
 }
 
+#define DISCOVER_INITIAL_DELAY_MS 100
+#define DISCOVER_BUSY_RETRY_MS 50
+#define DISCOVER_MAX_ATTEMPTS 5
+
+struct discovery_slot {
+    struct bt_conn* conn;
+    int64_t not_before;
+    uint8_t attempts;
+    bool pending;
+};
+
+static struct discovery_slot discovery_slots[CONFIG_BT_MAX_CONN];
+static struct bt_conn* discovery_active_conn;
+static K_MUTEX_DEFINE(discovery_lock);
+
+static void discovery_schedule_next();
+static void discovery_retry(struct bt_conn* conn, const char* reason);
+static void discovery_succeeded(struct bt_conn* conn);
+
 static void discovery_completed_cb(struct bt_gatt_dm* dm, void* context) {
+    struct bt_conn* conn = bt_gatt_dm_conn_get(dm);
     patch_broken_uuids(dm);
     int assign_err = bt_hogp_handles_assign(dm, ((struct bt_hogp*) context));
     if (assign_err) {
         LOG_WRN("handles_assign failed: %d (incomplete HID discovery)", assign_err);
     }
     CHK(bt_gatt_dm_data_release(dm));
-    k_work_reschedule(&scan_start_work, K_MSEC(SCAN_DELAY_MS));
+    if (assign_err) {
+        discovery_retry(conn, "incomplete HID service");
+    } else {
+        discovery_succeeded(conn);
+        k_work_reschedule(&scan_start_work, K_MSEC(SCAN_DELAY_MS));
+    }
 }
 
 static void discovery_service_not_found_cb(struct bt_conn* conn, void* context) {
-    LOG_WRN("");
-    k_work_reschedule(&scan_start_work, K_MSEC(SCAN_DELAY_MS));
+    LOG_WRN("HID service not found");
+    discovery_retry(conn, "HID service not found");
 }
 
 static void discovery_error_found_cb(struct bt_conn* conn, int err, void* context) {
     LOG_ERR("err=%d", err);
-    k_work_reschedule(&scan_start_work, K_MSEC(SCAN_DELAY_MS));
+    discovery_retry(conn, "GATT discovery error");
 }
 
 static const struct bt_gatt_dm_cb discovery_cb = {
@@ -1299,36 +1336,211 @@ static const struct bt_gatt_dm_cb discovery_cb = {
     .error_found = discovery_error_found_cb,
 };
 
-static void gatt_discover(struct bt_conn* conn) {
+static int gatt_discover(struct bt_conn* conn) {
     uint8_t conn_idx = bt_conn_index(conn);
-    if (!CHK(bt_gatt_dm_start(conn, (struct bt_uuid*) &BT_UUID_HIDS_, &discovery_cb, &hogps[conn_idx]))) {
-        k_work_reschedule(&scan_start_work, K_MSEC(SCAN_DELAY_MS));
+    int err = bt_gatt_dm_start(conn, (struct bt_uuid*) &BT_UUID_HIDS_,
+                               &discovery_cb, &hogps[conn_idx]);
+    if (err) {
+        LOG_WRN("HID discovery start failed for conn %u: %d", conn_idx, err);
     }
+    return err;
 }
 
-// Delay HID discovery briefly after security is established. Running it the
-// instant a bonded reconnect re-encrypts races the controller's GATT server
-// still coming up, so the discovery can return incomplete (missing the HID
-// Control Point), fail handles_assign, and drop the link — making reconnects
-// take several retry cycles ("took a long time"). A short settle delay lets the
-// first discovery find the full service.
-#define DISCOVER_SETTLE_MS 300
-static bool discover_pending[CONFIG_BT_MAX_CONN];
+static void discovery_queue(struct bt_conn* conn, int delay_ms, bool reset_attempts) {
+    uint8_t conn_idx = bt_conn_index(conn);
+    struct bt_conn* old_conn = NULL;
+
+    k_mutex_lock(&discovery_lock, K_FOREVER);
+    struct discovery_slot* slot = &discovery_slots[conn_idx];
+
+    if (discovery_active_conn == conn) {
+        k_mutex_unlock(&discovery_lock);
+        return;
+    }
+    if (slot->conn != conn) {
+        old_conn = slot->conn;
+        slot->conn = bt_conn_ref(conn);
+    }
+
+    if (reset_attempts) {
+        slot->attempts = 0;
+    }
+    slot->pending = true;
+    slot->not_before = k_uptime_get() + delay_ms;
+    k_mutex_unlock(&discovery_lock);
+
+    if (old_conn) {
+        bt_conn_unref(old_conn);
+    }
+    discovery_schedule_next();
+}
+
+static void discovery_retry(struct bt_conn* conn, const char* reason) {
+    uint8_t conn_idx = bt_conn_index(conn);
+    struct bt_conn* active_ref = NULL;
+    struct bt_conn* slot_ref = NULL;
+    bool disconnect = false;
+    int delay_ms = 0;
+
+    k_mutex_lock(&discovery_lock, K_FOREVER);
+    if (discovery_active_conn != conn) {
+        k_mutex_unlock(&discovery_lock);
+        LOG_WRN("ignoring stale HID discovery callback for conn %u", conn_idx);
+        return;
+    }
+
+    active_ref = discovery_active_conn;
+    discovery_active_conn = NULL;
+    struct discovery_slot* slot = &discovery_slots[conn_idx];
+
+    if (slot->conn == conn) {
+        if (slot->attempts >= DISCOVER_MAX_ATTEMPTS) {
+            slot->pending = false;
+            slot_ref = slot->conn;
+            slot->conn = NULL;
+            disconnect = true;
+        } else {
+            delay_ms = 100 << MIN(slot->attempts - 1, 3);
+            slot->pending = true;
+            slot->not_before = k_uptime_get() + delay_ms;
+        }
+    }
+    k_mutex_unlock(&discovery_lock);
+
+    if (disconnect) {
+        LOG_ERR("HID discovery exhausted %u attempts for conn %u (%s); reconnecting",
+                DISCOVER_MAX_ATTEMPTS, conn_idx, reason);
+        CHK(bt_conn_disconnect(conn, BT_HCI_ERR_REMOTE_USER_TERM_CONN));
+    } else if (delay_ms) {
+        LOG_WRN("retrying HID discovery for conn %u in %d ms (%s)",
+                conn_idx, delay_ms, reason);
+    }
+
+    if (slot_ref) {
+        bt_conn_unref(slot_ref);
+    }
+    bt_conn_unref(active_ref);
+    discovery_schedule_next();
+}
+
+static void discovery_succeeded(struct bt_conn* conn) {
+    uint8_t conn_idx = bt_conn_index(conn);
+    struct bt_conn* active_ref = NULL;
+    struct bt_conn* slot_ref = NULL;
+
+    k_mutex_lock(&discovery_lock, K_FOREVER);
+    if (discovery_active_conn == conn) {
+        active_ref = discovery_active_conn;
+        discovery_active_conn = NULL;
+    }
+
+    struct discovery_slot* slot = &discovery_slots[conn_idx];
+    if (slot->conn == conn) {
+        slot->pending = false;
+        slot->attempts = 0;
+        slot_ref = slot->conn;
+        slot->conn = NULL;
+    }
+    k_mutex_unlock(&discovery_lock);
+
+    if (slot_ref) {
+        bt_conn_unref(slot_ref);
+    }
+    if (active_ref) {
+        bt_conn_unref(active_ref);
+    }
+    discovery_schedule_next();
+}
+
+struct discover_work_context {
+    bool started;
+};
 
 static void discover_one_cb(struct bt_conn* conn, void* data) {
+    struct discover_work_context* context = (struct discover_work_context*) data;
     uint8_t conn_idx = bt_conn_index(conn);
-    if (discover_pending[conn_idx]) {
-        discover_pending[conn_idx] = false;
-        gatt_discover(conn);
+
+    if (context->started) {
+        return;
     }
+
+    k_mutex_lock(&discovery_lock, K_FOREVER);
+    struct discovery_slot* slot = &discovery_slots[conn_idx];
+    if (discovery_active_conn || !slot->pending || slot->conn != conn ||
+        slot->not_before > k_uptime_get()) {
+        k_mutex_unlock(&discovery_lock);
+        return;
+    }
+
+    slot->pending = false;
+    slot->attempts++;
+    discovery_active_conn = bt_conn_ref(conn);
+    uint8_t attempt = slot->attempts;
+    k_mutex_unlock(&discovery_lock);
+
+    context->started = true;
+    int err = gatt_discover(conn);
+    if (err) {
+        if (err == -EBUSY || err == -EALREADY) {
+            struct bt_conn* active_ref = NULL;
+
+            k_mutex_lock(&discovery_lock, K_FOREVER);
+            if (discovery_active_conn == conn) {
+                active_ref = discovery_active_conn;
+                discovery_active_conn = NULL;
+            }
+            if (slot->conn == conn) {
+                slot->pending = true;
+                slot->not_before = k_uptime_get() + DISCOVER_BUSY_RETRY_MS;
+                slot->attempts--;
+            }
+            k_mutex_unlock(&discovery_lock);
+
+            if (active_ref) {
+                bt_conn_unref(active_ref);
+            }
+            discovery_schedule_next();
+        } else {
+            discovery_retry(conn, "discovery start error");
+        }
+        return;
+    }
+
+    LOG_INF("HID discovery attempt %u started for conn %u",
+            attempt, conn_idx);
 }
 
 static void discover_work_fn(struct k_work* work) {
-    // Look up the live connection rather than holding a bt_conn pointer across
-    // the delay, so there is no stale-pointer window if the link drops first.
-    bt_conn_foreach(BT_CONN_TYPE_LE, discover_one_cb, NULL);
+    struct discover_work_context context = {};
+    bt_conn_foreach(BT_CONN_TYPE_LE, discover_one_cb, &context);
+    discovery_schedule_next();
 }
 static K_WORK_DELAYABLE_DEFINE(discover_work, discover_work_fn);
+
+static void discovery_schedule_next() {
+    int64_t now = k_uptime_get();
+    int64_t earliest = INT64_MAX;
+
+    k_mutex_lock(&discovery_lock, K_FOREVER);
+    if (discovery_active_conn) {
+        k_mutex_unlock(&discovery_lock);
+        return;
+    }
+    for (int i = 0; i < CONFIG_BT_MAX_CONN; i++) {
+        if (discovery_slots[i].pending) {
+            earliest = MIN(earliest, discovery_slots[i].not_before);
+        }
+    }
+    k_mutex_unlock(&discovery_lock);
+
+    if (earliest != INT64_MAX) {
+        int err = k_work_reschedule(&discover_work,
+                                    K_MSEC(MAX((int64_t) 0, earliest - now)));
+        if (err < 0) {
+            LOG_ERR("could not schedule HID discovery work: %d", err);
+        }
+    }
+}
 
 static int64_t button_pressed_at;
 
@@ -1386,9 +1598,22 @@ static void disconnected(struct bt_conn* conn, uint8_t reason) {
     }
 
     uint8_t conn_idx = bt_conn_index(conn);
+    struct bt_conn* slot_ref = NULL;
 
-    // Cancel any pending deferred discovery for this slot.
-    discover_pending[conn_idx] = false;
+    k_mutex_lock(&discovery_lock, K_FOREVER);
+    struct discovery_slot* slot = &discovery_slots[conn_idx];
+    if (slot->conn == conn) {
+        slot->pending = false;
+        slot->attempts = 0;
+        slot_ref = slot->conn;
+        slot->conn = NULL;
+    }
+    k_mutex_unlock(&discovery_lock);
+
+    if (slot_ref) {
+        bt_conn_unref(slot_ref);
+    }
+    discovery_schedule_next();
 
     if (bt_hogp_assign_check(&hogps[conn_idx])) {
         bt_hogp_release(&hogps[conn_idx]);
@@ -1410,10 +1635,9 @@ static void security_changed(struct bt_conn* conn, bt_security_t level, enum bt_
     if (!err) {
         LOG_INF("%s, level=%u.", addr, level);
         peers_only = true;
-        // Defer discovery briefly so the controller's GATT server is fully up
-        // before we traverse it (avoids the incomplete-discovery reconnect race).
-        discover_pending[bt_conn_index(conn)] = true;
-        k_work_reschedule(&discover_work, K_MSEC(DISCOVER_SETTLE_MS));
+        // Discovery Manager has one global instance, so queue each encrypted
+        // connection and retry incomplete controller GATT responses in place.
+        discovery_queue(conn, DISCOVER_INITIAL_DELAY_MS, true);
     } else {
         LOG_ERR("security failed: %s, level=%u, err=%d", addr, level, err);
     }
@@ -1567,6 +1791,13 @@ static void hogp_ready_cb(struct bt_hogp* hogp) {
 
 static void hogp_prep_error_cb(struct bt_hogp* hogp, int err) {
     LOG_ERR("err=%d", err);
+    struct bt_conn* conn = bt_hogp_conn(hogp);
+    if (conn) {
+        // Preparation happens after handle assignment. A partial read here
+        // cannot be repaired by reusing this HOGP instance, so reconnect while
+        // retaining the bond and run the complete discovery path again.
+        CHK(bt_conn_disconnect(conn, BT_HCI_ERR_REMOTE_USER_TERM_CONN));
+    }
 }
 
 static const struct bt_hogp_init_params hogp_init_params = {
@@ -1769,7 +2000,7 @@ static void leds_init() {
 static void status_cb(enum usb_dc_status_code status, const uint8_t* param) {
     if (status == USB_DC_SOF) {
         atomic_set_bit(tick_pending, 0);
-    } else if (status == USB_DC_RESET || status == USB_DC_CONFIGURED || status == USB_DC_SUSPEND) {
+    } else if (status == USB_DC_RESET || status == USB_DC_CONFIGURED) {
         if (is_switch_pro_mode()) {
             switch_pro_reset_session();
         }
