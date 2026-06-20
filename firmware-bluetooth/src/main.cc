@@ -959,10 +959,27 @@ static bool switch2_pro_write_controller_output(const uint8_t* data, uint8_t len
     return false;
 }
 
+// Forward decl; the Xbox HD-rumble encoder is defined further down.
+static void switch_pro_send_xbox_rumble(const uint8_t* switch_rumble);
+
 static void switch2_pro_handle_rumble_report(const uint8_t* report, uint8_t len) {
     switch_pro_rumble_reports++;
     switch2_flight_record(Switch2FlightEvent::RUMBLE, report[0], report[1], 0, 0, report, len);
     switch2_pro_write_controller_output(report, len);
+
+    // Also drive a connected Xbox controller. The Switch 2 USB rumble report
+    // packs the left motor's HD-rumble frame at bytes 2..5 and the right
+    // motor's at bytes 18..21 (same 4-byte HD-Rumble encoding as the original
+    // Pro Controller, just non-contiguous unlike the Switch 1 report).
+    // Assemble a contiguous left||right blob for the existing Xbox encoder,
+    // which handles hogp lookup, dedup and the BLE write.
+    if (len >= 22) {
+        uint8_t hd[8] = {
+            report[2], report[3], report[4], report[5],
+            report[18], report[19], report[20], report[21],
+        };
+        switch_pro_send_xbox_rumble(hd);
+    }
 }
 
 static bool switch2_pro_handle_output_report(const uint8_t* report, uint8_t len) {
