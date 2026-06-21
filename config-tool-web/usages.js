@@ -553,6 +553,33 @@ const usages = {
         "0x00010032": { 'name': 'Right stick X', 'class': 'mouse' },
         "0x00010035": { 'name': 'Right stick Y', 'class': 'mouse' },
     },
+    7: {
+        "0x00090001": { 'name': 'B', 'class': 'mouse' },
+        "0x00090002": { 'name': 'A', 'class': 'mouse' },
+        "0x00090003": { 'name': 'Y', 'class': 'mouse' },
+        "0x00090004": { 'name': 'X', 'class': 'mouse' },
+        "0x00090005": { 'name': 'R', 'class': 'mouse' },
+        "0x00090006": { 'name': 'ZR', 'class': 'mouse' },
+        "0x00090007": { 'name': 'Plus', 'class': 'mouse' },
+        "0x00090008": { 'name': 'RS', 'class': 'mouse' },
+        "0x00090009": { 'name': 'D-pad down', 'class': 'mouse' },
+        "0x0009000a": { 'name': 'D-pad right', 'class': 'mouse' },
+        "0x0009000b": { 'name': 'D-pad left', 'class': 'mouse' },
+        "0x0009000c": { 'name': 'D-pad up', 'class': 'mouse' },
+        "0x0009000d": { 'name': 'L', 'class': 'mouse' },
+        "0x0009000e": { 'name': 'ZL', 'class': 'mouse' },
+        "0x0009000f": { 'name': 'Minus', 'class': 'mouse' },
+        "0x00090010": { 'name': 'LS', 'class': 'mouse' },
+        "0x00090011": { 'name': 'Home', 'class': 'mouse' },
+        "0x00090012": { 'name': 'Capture', 'class': 'mouse' },
+        "0x00090013": { 'name': 'GR', 'class': 'mouse' },
+        "0x00090014": { 'name': 'GL', 'class': 'mouse' },
+        "0x00090015": { 'name': 'C', 'class': 'mouse' },
+        "0x00010030": { 'name': 'Left stick X', 'class': 'mouse' },
+        "0x00010031": { 'name': 'Left stick Y', 'class': 'mouse' },
+        "0x00010033": { 'name': 'Right stick X', 'class': 'mouse' },
+        "0x00010035": { 'name': 'Right stick Y', 'class': 'mouse' },
+    },
 };
 
 const common_target_usages = {
@@ -672,6 +699,7 @@ Object.assign(usages[3], common_target_usages);
 Object.assign(usages[4], common_target_usages);
 Object.assign(usages[5], common_target_usages);
 Object.assign(usages[6], common_target_usages);
+Object.assign(usages[7], common_target_usages);
 usages[1] = usages[0]; // absolute mouse & keyboard is the same as regular mouse & keyboard
 
 export default usages;

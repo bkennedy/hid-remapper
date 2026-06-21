@@ -1488,8 +1488,7 @@ void process_mapping(bool auto_repeat) {
                 continue;
             }
             if (or_items == OR_BUFSIZE) {
-                or_overflows++;
-                printf("overflow!\n");
+                or_overflows++;  // counted in switch_pro_stats; no synchronous printf (it floods + starves USB/BLE)
                 break;
             }
             uint8_t prev = (or_tail + OR_BUFSIZE - 1) % OR_BUFSIZE;

@@ -26,8 +26,7 @@ static bool ready_to_send = true;
 
 void do_queue_out_report(const uint8_t* report, uint16_t len, uint8_t report_id, uint8_t dev_addr, uint8_t interface, OutType type) {
     if (oor_items == OOR_BUFSIZE) {
-        printf("out overflow!\n");
-        return;
+        return;  // drop silently; synchronous printf here floods + starves USB/BLE
     }
     if ((len + ((report_id != 0) ? 1 : 0)) > sizeof(outgoing_out_reports[oor_tail].report)) {
         return;
@@ -47,8 +46,7 @@ void do_queue_out_report(const uint8_t* report, uint16_t len, uint8_t report_id,
 
 void do_queue_get_report(uint8_t report_id, uint8_t dev_addr, uint8_t interface, uint8_t len) {
     if (oor_items == OOR_BUFSIZE) {
-        printf("out overflow!\n");
-        return;
+        return;  // drop silently; synchronous printf here floods + starves USB/BLE
     }
     outgoing_out_reports[oor_tail].dev_addr = dev_addr;
     outgoing_out_reports[oor_tail].interface = interface;

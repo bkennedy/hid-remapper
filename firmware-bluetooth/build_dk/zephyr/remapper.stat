@@ -1,0 +1,91 @@
+ELF Header:
+  Magic:   7f 45 4c 46 01 01 01 00 00 00 00 00 00 00 00 00 
+  Class:                             ELF32
+  Data:                              2's complement, little endian
+  Version:                           1 (current)
+  OS/ABI:                            UNIX - System V
+  ABI Version:                       0
+  Type:                              EXEC (Executable file)
+  Machine:                           ARM
+  Version:                           0x1
+  Entry point address:               0x28d2d
+  Start of program headers:          52 (bytes into file)
+  Start of section headers:          10525556 (bytes into file)
+  Flags:                             0x5000200, Version5 EABI, soft-float ABI
+  Size of this header:               52 (bytes)
+  Size of program headers:           32 (bytes)
+  Number of program headers:         5
+  Size of section headers:           40 (bytes)
+  Number of section headers:         47
+  Section header string table index: 46
+
+Section Headers:
+  [Nr] Name              Type            Addr     Off    Size   ES Flg Lk Inf Al
+  [ 0]                   NULL            00000000 000000 000000 00      0   0  0
+  [ 1] rom_start         PROGBITS        00000000 0000e0 000100 00 WAX  0   0  4
+  [ 2] text              PROGBITS        00000100 0001e0 04a8d8 00  AX  0   0 16
+  [ 3] .ARM.exidx        ARM_EXIDX       0004a9d8 04aab8 000008 00  AL  2   0  4
+  [ 4] initlevel         PROGBITS        0004a9e0 04aac0 0000f0 00   A  0   0  4
+  [ 5] devices           PROGBITS        0004aad0 04abb0 000108 00   A  0   0  4
+  [ 6] sw_isr_table      PROGBITS        0004abd8 04acb8 000180 00  WA  0   0  4
+  [ 7] device_handles    PROGBITS        0004ad58 04ae38 000042 00   A  0   0  2
+  [ 8] ctors             PROGBITS        0004ad9a 04ae7a 00000e 00  WA  0   0  1
+  [ 9] init_array        INIT_ARRAY      0004ada8 04ae88 00000c 04  WA  0   0  4
+  [10] bt_l2cap_fix[...] PROGBITS        0004adb4 04ae94 000024 00   A  0   0  4
+  [11] bt_conn_cb_area   PROGBITS        0004add8 04aeb8 00001c 00   A  0   0  4
+  [12] bt_gatt_serv[...] PROGBITS        0004adf4 04aed4 000010 00   A  0   0  4
+  [13] log_const_se[...] PROGBITS        0004ae04 04aee4 000158 00   A  0   0  4
+  [14] log_backend_area  PROGBITS        0004af5c 04b03c 000020 00   A  0   0  4
+  [15] settings_han[...] PROGBITS        0004af7c 04b05c 000078 00   A  0   0  4
+  [16] rodata            PROGBITS        0004b000 04b0e0 009614 00   A  0   0 16
+  [17] .ramfunc          PROGBITS        20000000 0568e0 000000 00   W  0   0  1
+  [18] datas             PROGBITS        20000000 0546f8 001b72 00  WA  0   0  8
+  [19] device_states     PROGBITS        20001b72 05626a 000016 00  WA  0   0  1
+  [20] log_mpsc_pbu[...] PROGBITS        20001b88 056280 000044 00  WA  0   0  4
+  [21] log_msg_ptr_area  PROGBITS        20001bcc 0562c4 000004 00  WA  0   0  4
+  [22] k_mem_slab_area   PROGBITS        20001bd0 0562c8 0000a0 00  WA  0   0  4
+  [23] k_heap_area       PROGBITS        20001c70 056368 000018 00  WA  0   0  4
+  [24] k_mutex_area      PROGBITS        20001c88 056380 0000f0 00  WA  0   0  4
+  [25] k_msgq_area       PROGBITS        20001d78 056470 000138 00  WA  0   0  4
+  [26] k_sem_area        PROGBITS        20001eb0 0565a8 000078 00  WA  0   0  4
+  [27] k_queue_area      PROGBITS        20001f28 056620 000054 00  WA  0   0  4
+  [28] _net_buf_poo[...] PROGBITS        20001f7c 056674 000120 00  WA  0   0  4
+  [29] usb_descriptor    PROGBITS        2000209c 056794 0000da 00  WA  0   0  1
+  [30] usb_cfg_data_area PROGBITS        20002178 056870 00006c 00  WA  0   0  4
+  [31] bss               NOBITS          200021e8 0568e8 010262 00  WA  0   0  8
+  [32] noinit            NOBITS          20012480 0568e8 011f18 00  WA  0   0 64
+  [33] .comment          PROGBITS        00000000 0568e0 000040 01  MS  0   0  1
+  [34] .debug_aranges    PROGBITS        00000000 056920 005688 00      0   0  8
+  [35] .debug_info       PROGBITS        00000000 05bfa8 4ffa1b 00      0   0  1
+  [36] .debug_abbrev     PROGBITS        00000000 55b9c3 029312 00      0   0  1
+  [37] .debug_line       PROGBITS        00000000 584cd5 0a58e7 00      0   0  1
+  [38] .debug_frame      PROGBITS        00000000 62a5bc 0120a0 00      0   0  4
+  [39] .debug_str        PROGBITS        00000000 63c65c 20ad38 01  MS  0   0  1
+  [40] .debug_loc        PROGBITS        00000000 847394 13ebf5 00      0   0  1
+  [41] .debug_ranges     PROGBITS        00000000 985f90 033758 00      0   0  8
+  [42] .ARM.attributes   ARM_ATTRIBUTES  00000000 9b96e8 000030 00      0   0  1
+  [43] .last_section     PROGBITS        000567f8 0568dc 000004 00   A  0   0  1
+  [44] .symtab           SYMTAB          00000000 9b9718 02d380 10     45 8497  4
+  [45] .strtab           STRTAB          00000000 9e6a98 022e7f 00      0   0  1
+  [46] .shstrtab         STRTAB          00000000 a09917 00025b 00      0   0  1
+Key to Flags:
+  W (write), A (alloc), X (execute), M (merge), S (strings), I (info),
+  L (link order), O (extra OS processing required), G (group), T (TLS),
+  C (compressed), x (unknown), o (OS specific), E (exclude),
+  D (mbind), y (purecode), p (processor specific)
+
+Program Headers:
+  Type           Offset   VirtAddr   PhysAddr   FileSiz MemSiz  Flg Align
+  EXIDX          0x04aab8 0x0004a9d8 0x0004a9d8 0x00008 0x00008 R   0x4
+  LOAD           0x0000e0 0x00000000 0x00000000 0x54614 0x54614 RWE 0x10
+  LOAD           0x0546f8 0x20000000 0x00054614 0x021e4 0x021e4 RW  0x8
+  LOAD           0x0568dc 0x000567f8 0x000567f8 0x00004 0x00004 R   0x1
+  LOAD           0x000000 0x200021e8 0x200021e8 0x00000 0x221b0 RW  0x40
+
+ Section to Segment mapping:
+  Segment Sections...
+   00     .ARM.exidx 
+   01     rom_start text .ARM.exidx initlevel devices sw_isr_table device_handles ctors init_array bt_l2cap_fixed_chan_area bt_conn_cb_area bt_gatt_service_static_area log_const_sections log_backend_area settings_handler_static_area rodata 
+   02     datas device_states log_mpsc_pbuf_area log_msg_ptr_area k_mem_slab_area k_heap_area k_mutex_area k_msgq_area k_sem_area k_queue_area _net_buf_pool_area usb_descriptor usb_cfg_data_area 
+   03     .last_section 
+   04     bss noinit 

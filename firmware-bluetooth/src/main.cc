@@ -972,6 +972,12 @@ static bool switch2_pro_handle_output_report(const uint8_t* report, uint8_t len)
 
     switch2_flight_record(Switch2FlightEvent::HOST_CMD, report[0], len > 1 ? report[1] : 0, len > 2 ? report[2] : 0, len > 3 ? report[3] : 0, report, len);
 
+    // LOOP DEBUG: log every host output report (0x91 handshake) over serial so the
+    // console interaction is observable on J2 while J3 stays on the Switch 2.
+    LOG_INF("sw2 host_cmd len=%u: %02x %02x %02x %02x %02x %02x %02x %02x", len,
+        report[0], len > 1 ? report[1] : 0, len > 2 ? report[2] : 0, len > 3 ? report[3] : 0,
+        len > 4 ? report[4] : 0, len > 5 ? report[5] : 0, len > 6 ? report[6] : 0, len > 7 ? report[7] : 0);
+
     if (len >= 2 && report[0] == 0x02 && report[1] != 0x91) {
         switch2_pro_handle_rumble_report(report, len);
         return true;
@@ -1408,6 +1414,11 @@ static bool switch_pro_handle_output_report(const uint8_t* report, uint8_t len) 
         return false;
     }
 
+    // LOOP DEBUG: log every host output report at the common entry (mode 6 or 7)
+    // so we can confirm the console is sending a handshake at all.
+    LOG_INF("pro out_report desc=%u len=%u: %02x %02x %02x %02x", our_descriptor_number, len,
+        report[0], len > 1 ? report[1] : 0, len > 2 ? report[2] : 0, len > 3 ? report[3] : 0);
+
     if (is_switch2_pro_mode()) {
         return switch2_pro_handle_output_report(report, len);
     }
@@ -1480,7 +1491,10 @@ static bool switch_pro_send_response() {
 }
 
 static bool switch_pro_send_input_heartbeat() {
-    if (!is_switch_pro_mode() || !switch_pro_input_enabled) {
+    // Standalone emulation: in Switch 2 Pro mode, send idle input from the start
+    // (no controller / no console "enable" needed) so the console notices the
+    // controller and starts the 0x91 handshake.
+    if (!is_switch_pro_mode() || (!switch_pro_input_enabled && !is_switch2_pro_mode())) {
         return false;
     }
 
@@ -1499,6 +1513,15 @@ static bool switch_pro_send_input_heartbeat() {
         switch_pro_heartbeat_writes++;
     } else {
         switch_pro_heartbeat_write_fails++;
+    }
+    // LOOP DEBUG: rate-limited (1/s) proof the board is sending input + whether
+    // the console is accepting IN writes.
+    static int64_t last_hb_log_ms = 0;
+    if (now - last_hb_log_ms >= 1000) {
+        last_hb_log_ms = now;
+        LOG_INF("sw2 heartbeat: writes=%u fails=%u enabled=%u rep0=%02x rep2=%02x",
+            switch_pro_heartbeat_writes, switch_pro_heartbeat_write_fails,
+            switch_pro_input_enabled, switch_pro_current_input[0], switch_pro_current_input[2]);
     }
     return sent;
 }
@@ -2578,6 +2601,16 @@ static int get_report_cb(const struct device* dev, struct usb_setup_packet* setu
 
 static void int_in_ready_cb0(const struct device* dev) {
     k_sem_give(&usb_sem0);
+    // LOOP DEBUG: fires when the console polls + reads our IN endpoint. If this
+    // never logs, the console isn't polling us (descriptor-level non-acceptance).
+    static uint32_t in_polls = 0;
+    static int64_t last_in_log_ms = 0;
+    in_polls++;
+    int64_t now = k_uptime_get();
+    if (now - last_in_log_ms >= 1000) {
+        last_in_log_ms = now;
+        LOG_INF("sw2 IN endpoint polled by console: count=%u", in_polls);
+    }
 }
 
 static void int_out_ready_cb0(const struct device* dev) {
@@ -2826,7 +2859,7 @@ static void descriptor_init() {
             device_descriptor->bDeviceClass = 0xef;
             device_descriptor->bDeviceSubClass = 0x02;
             device_descriptor->bDeviceProtocol = 0x01;
-            device_descriptor->bcdDevice = sys_cpu_to_le16(0x0200);
+            device_descriptor->bcdDevice = sys_cpu_to_le16(0x0201);
         }
     }
 }
@@ -2852,6 +2885,20 @@ static void usb_init() {
     CHK(usb_hid_init(hid_dev1));
 #endif
     CHK(usb_enable(status_cb));
+
+    // LOOP DEBUG: dump the assembled USB descriptor blob (device + config + ...)
+    // so we can diff our emitted config descriptor against the real Switch 2 Pro's.
+    if (is_switch2_pro_mode()) {
+        const uint8_t* d = (const uint8_t*) __usb_descriptor_start;
+        for (int i = 0; i < 288; i += 16) {
+            printk("usbdesc %03x:", i);
+            for (int j = 0; j < 16; j++) {
+                printk(" %02x", d[i + j]);
+            }
+            printk("\n");
+            k_msleep(5);
+        }
+    }
 }
 
 static void bt_init() {
@@ -3055,6 +3102,7 @@ int main() {
     CHK(settings_register(&our_settings_handlers));
     bt_init();
     settings_load();
+    switch2_flight_dump_saved();  // dump persisted console-handshake history to serial
     switch2_pro_ble_enabled = is_switch2_pro_mode();
 #if CONFIG_USB_HID_DEVICE_COUNT == 1
     LOG_INF("Switch 2 console USB build: forcing Switch 2 Pro descriptor");
