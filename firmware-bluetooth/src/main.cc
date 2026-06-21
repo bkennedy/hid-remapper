@@ -468,7 +468,7 @@ static void switch_pro_reset_input() {
     memset(switch_pro_current_input, 0, sizeof(switch_pro_current_input));
     if (is_switch2_pro_mode()) {
         switch_pro_current_input[0] = 0x09;
-        switch_pro_current_input[2] = 0x15;
+        switch_pro_current_input[2] = 0x20;  // USB connected, battery OK (real capture: 0x20)
         switch_pro_current_input[6] = 0x00;
         switch_pro_current_input[7] = 0x08;
         switch_pro_current_input[8] = 0x80;
@@ -657,7 +657,7 @@ static void switch2_pro_set_input_from_packet(const uint8_t* data, uint16_t len)
     uint8_t next[64];
     memcpy(next, switch_pro_current_input, sizeof(next));
     next[0] = 0x09;
-    next[2] = 0x15;
+    next[2] = 0x20;  // USB connected, battery OK
     next[3] = data[2];
     next[4] = data[3];
     // BLE special byte has Capture at bit4; USB report has it at bit1
@@ -2531,6 +2531,8 @@ static int set_report_cb(const struct device* dev, struct usb_setup_packet* setu
     // report_id, report_type
     sys_put_le16(setup->wValue, request_value);
 
+    printk("USB_SETUP bm=0x%02x req=0x%02x val=0x%04x idx=0x%04x len=0x%04x status=SET_REPORT\n",
+           setup->bmRequestType, setup->bRequest, setup->wValue, setup->wIndex, (unsigned)*len);
     LOG_INF("report_id=%d, report_type=%d, len=%d", request_value[0], request_value[1], *len);
     LOG_HEXDUMP_DBG((*data), (uint32_t) *len, "");
     if (dev == hid_dev0 && is_switch2_pro_mode()) {
@@ -2573,6 +2575,8 @@ static int get_report_cb(const struct device* dev, struct usb_setup_packet* setu
 
     sys_put_le16(setup->wValue, request_value);
 
+    printk("USB_SETUP bm=0x%02x req=0x%02x val=0x%04x idx=0x%04x len=0x%04x status=GET_REPORT\n",
+           setup->bmRequestType, setup->bRequest, setup->wValue, setup->wIndex, (unsigned)*len);
     LOG_INF("report_id=%d, %d, len=%d", request_value[0], request_value[1], *len);
     if (dev == hid_dev0 && is_switch2_pro_mode()) {
         switch2_flight_record(Switch2FlightEvent::GET_REPORT, request_value[0], request_value[1], (uint8_t) MIN(*len, (int32_t) 255), 0);
@@ -2659,6 +2663,8 @@ static void switch2_vendor_ep_cb(uint8_t ep, enum usb_dc_ep_cb_status_code cb_st
         return;
     }
 
+    printk("USB_EP_OUT ep=0x02 len=%u data=%02x%02x%02x%02x\n",
+           (unsigned)len, buf[0], len>1?buf[1]:0, len>2?buf[2]:0, len>3?buf[3]:0);
     switch2_flight_record(Switch2FlightEvent::INT_OUT, buf[0], len > 1 ? buf[1] : 0, len > 2 ? buf[2] : 0, len > 3 ? buf[3] : 0, buf, (uint8_t) MIN(len, (uint32_t) 255));
     if (switch2_pro_handle_output_report(buf, (uint8_t) MIN(len, (uint32_t) 255))) {
         switch_pro_host_reports++;
@@ -2701,7 +2707,10 @@ USBD_CLASS_DESCR_DEFINE(primary, 1) struct switch2_vendor_config switch2_vendor_
     .if0 = {
         .bLength = sizeof(struct usb_if_descriptor),
         .bDescriptorType = USB_DESC_INTERFACE,
-        .bInterfaceNumber = 1,
+        // Must be 0 at link time. usb_fix_descriptor only calls usb_get_cfg_data
+        // (to locate our ep_cfg and validate endpoints) when bInterfaceNumber==0.
+        // The interface_config callback then updates it to the correct runtime value.
+        .bInterfaceNumber = 0,
         .bAlternateSetting = 0,
         .bNumEndpoints = 2,
         .bInterfaceClass = USB_BCC_VENDOR,
@@ -2743,9 +2752,58 @@ static void switch2_vendor_interface_config(struct usb_desc_header* head, uint8_
     switch2_vendor_desc.if0.bInterfaceNumber = bInterfaceNumber;
 }
 
+// Identity response for vendor IN request 0x03 (wLength=64).
+// Captured from a real Switch 2 Pro Controller connected to the console.
+// Layout: [0]=0x01, [1]=0x00, [2..15]=serial(14 bytes), [16..17]=\0\0,
+// [18..19]=VID LE, [20..21]=PID LE, [22..23]=version, [24]=unk,
+// [25..27]=grip-L color, [28..30]=body color, [31..33]=button color,
+// [34..36]=grip-R color, [37..63]=0xff padding.
+static const uint8_t sw2_vendor_req03_resp[64] = {
+    0x01, 0x00,
+    'H','I','D','0','0','0','0','0','0','0','0','0','0','0', 0x00, 0x00,  // serial
+    0x7e, 0x05,  // VID = 0x057e (Nintendo)
+    0x69, 0x20,  // PID = 0x2069 (Switch 2 Pro)
+    0x01, 0x06,  // device version
+    0x01,        // unknown
+    0x32, 0x32, 0x32,  // grip L color
+    0x32, 0x32, 0x32,  // body color
+    0x32, 0x32, 0x32,  // button color
+    0x32, 0x32, 0x32,  // grip R color
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+};
+
+// Protocol/version response for vendor IN request 0x02 (wLength=16).
+// Captured from real controller; last 6 bytes are a controller BT MAC.
+static const uint8_t sw2_vendor_req02_resp[16] = {
+    0x02, 0x01, 0x04, 0x00, 0x00, 0x00, 0x0c, 0x00,
+    0x02, 0x03,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  // placeholder MAC
+};
+
 static int switch2_vendor_handler(struct usb_setup_packet* setup, int32_t* len, uint8_t** data) {
-    ARG_UNUSED(setup);
-    ARG_UNUSED(len);
+    if (setup->bmRequestType == 0xC0 && setup->bRequest == 0x03 && setup->wLength >= 64) {
+        *len = 64;
+        memcpy(*data, sw2_vendor_req03_resp, 64);
+        printk("USB_SETUP bm=0xc0 req=0x03 status=identity_ACK\n");
+        return 0;
+    }
+    if (setup->bmRequestType == 0xC0 && setup->bRequest == 0x02 && setup->wLength >= 16) {
+        *len = 16;
+        memcpy(*data, sw2_vendor_req02_resp, 16);
+        printk("USB_SETUP bm=0xc0 req=0x02 status=proto_ACK\n");
+        return 0;
+    }
+    // bm=0x40 = vendor OUT to device; req=0x04 appears after identity exchange —
+    // console expects zero-length ACK before it sends the BULK OUT 0x91.
+    if (setup->bmRequestType == 0x40 && setup->bRequest == 0x04 && setup->wLength == 0) {
+        *len = 0;
+        printk("USB_SETUP bm=0x40 req=0x04 val=0x%04x status=set_ACK\n", setup->wValue);
+        return 0;
+    }
+    printk("USB_SETUP bm=0x%02x req=0x%02x val=0x%04x idx=0x%04x len=0x%04x status=vendor_STALL\n",
+           setup->bmRequestType, setup->bRequest, setup->wValue, setup->wIndex, (unsigned)setup->wLength);
     ARG_UNUSED(data);
     return -ENOTSUP;
 }
@@ -2772,9 +2830,16 @@ USBD_CFG_DATA_DEFINE(primary, switch2_vendor) struct usb_cfg_data switch2_vendor
 // console only opens them if it uses the mic, which it doesn't on the
 // controller screen. Purpose: make our composite structure match the real one
 // so the console recognizes us as a Switch 2 Pro.
+// Audio descriptor: IAD#3 + IF2 (AudioControl) + IF3 alt=0 + IF4 alt=0, all with
+// bNumEndpoints=0. The real controller also has alt=1 for IF3/IF4 with isochronous
+// EP 0x03/0x83, but Zephyr's usb_fix_descriptor rejects any endpoint in the
+// descriptor that has no registered ep_cfg — which caused "Failed to validate
+// endpoints" and prevented USB from initialising entirely. Omitting alt=1 means
+// the console can't open the audio stream, but it never does on the controller
+// screen so this is fine. The 5-interface shape (IF0-IF4) still matches.
 USBD_CLASS_DESCR_DEFINE(primary, 2) uint8_t sw2_audio_desc[] = {
     0x08, 0x0b, 0x02, 0x03, 0x01, 0x01, 0x00, 0x00,             // IAD#3 (IF2-4 audio)
-    0x09, 0x04, 0x02, 0x00, 0x00, 0x01, 0x01, 0x00, 0x00,       // IF2 AudioControl
+    0x09, 0x04, 0x02, 0x00, 0x00, 0x01, 0x01, 0x00, 0x00,       // IF2 AudioControl alt0 0EP
     0x0a, 0x24, 0x01, 0x00, 0x01, 0x47, 0x00, 0x02, 0x03, 0x04, // CS AC header
     0x0c, 0x24, 0x02, 0x01, 0x01, 0x01, 0x00, 0x02, 0x03, 0x00, 0x00, 0x00,
     0x0a, 0x24, 0x06, 0x02, 0x01, 0x01, 0x03, 0x00, 0x00, 0x00,
@@ -2782,18 +2847,8 @@ USBD_CLASS_DESCR_DEFINE(primary, 2) uint8_t sw2_audio_desc[] = {
     0x0c, 0x24, 0x02, 0x04, 0x01, 0x02, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00,
     0x09, 0x24, 0x06, 0x05, 0x04, 0x01, 0x03, 0x00, 0x00,
     0x09, 0x24, 0x03, 0x06, 0x01, 0x01, 0x00, 0x05, 0x00,
-    0x09, 0x04, 0x03, 0x00, 0x00, 0x01, 0x02, 0x00, 0x00,       // IF3 alt0
-    0x09, 0x04, 0x03, 0x01, 0x01, 0x01, 0x02, 0x00, 0x00,       // IF3 alt1
-    0x07, 0x24, 0x01, 0x01, 0x00, 0x01, 0x00,
-    0x0b, 0x24, 0x02, 0x01, 0x02, 0x02, 0x10, 0x01, 0x80, 0xbb, 0x00,
-    0x07, 0x05, 0x03, 0x0d, 0xc0, 0x00, 0x01,                   // iso OUT EP 0x03
-    0x07, 0x25, 0x01, 0x00, 0x00, 0x00, 0x00,
-    0x09, 0x04, 0x04, 0x00, 0x00, 0x01, 0x02, 0x00, 0x00,       // IF4 alt0
-    0x09, 0x04, 0x04, 0x01, 0x01, 0x01, 0x02, 0x00, 0x00,       // IF4 alt1
-    0x07, 0x24, 0x01, 0x06, 0x00, 0x01, 0x00,
-    0x0b, 0x24, 0x02, 0x01, 0x02, 0x02, 0x10, 0x01, 0x80, 0xbb, 0x00,
-    0x07, 0x05, 0x83, 0x0d, 0xc0, 0x00, 0x01,                   // iso IN EP 0x83
-    0x07, 0x25, 0x01, 0x00, 0x00, 0x00, 0x00,
+    0x09, 0x04, 0x03, 0x00, 0x00, 0x01, 0x02, 0x00, 0x00,       // IF3 AudioStreaming alt0 0EP
+    0x09, 0x04, 0x04, 0x00, 0x00, 0x01, 0x02, 0x00, 0x00,       // IF4 AudioStreaming alt0 0EP
 };
 
 // IAD#1: groups interface 0 (HID) — 08 0b 00 01 03 00 00 00. Placed at section

@@ -703,7 +703,7 @@ void switch_pro_clear_report(uint8_t* report, uint8_t report_id, uint16_t len) {
 void switch2_pro_clear_report(uint8_t* report, uint8_t report_id, uint16_t len) {
     memset(report, 0, len);
     if (report_id == 0x09 && len >= 11) {
-        report[1] = 0x15;
+        report[1] = 0x20;  // USB connected, battery OK (real capture: 0x20)
         report[8] = 0x08;
         report[10] = 0x08;
     } else if (report_id == 0x05 && len >= 63) {
