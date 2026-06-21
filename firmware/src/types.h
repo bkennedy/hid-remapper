@@ -33,6 +33,8 @@ enum class ConfigCommand : int8_t {
     ADD_QUIRK = 24,
     GET_QUIRK = 25,
     GET_SWITCH_PRO_DIAG = 26,
+    GET_SWITCH2_FLIGHT_LOG = 27,
+    GET_SWITCH2_BOND_KEYS = 28,
 };
 
 struct usage_def_t {
