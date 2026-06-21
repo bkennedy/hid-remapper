@@ -805,6 +805,63 @@ static void connect_rumble_stop_fn(struct k_work* work) {
 }
 static K_WORK_DELAYABLE_DEFINE(connect_rumble_stop_work, connect_rumble_stop_fn);
 
+// --- Switch 2 wake-from-sleep broadcast -------------------------------------
+// In Switch Pro mode, when a controller connects over BLE we briefly broadcast
+// the Switch 2 wake advertising payload so a sleeping console powers on. The
+// console wakes when it sees, from a MAC in its bond database, a connectable
+// ADV_IND whose manufacturer data carries the wake flag (byte 9 = 0x81) and its
+// own MAC in bytes 10-15 (little-endian). We advertise from the board's own
+// identity address (privacy is enabled, so we must force the identity addr).
+//
+// NOTE: a console only wakes if *this board's* identity address is already in
+// its bond database. The console MAC below (c8:48:05:65:39:e1 -> e1 39 65 05 48
+// c8) is the one observed during reverse engineering; make both the console MAC
+// and the board's bond state configurable once peripheral pairing is wired up.
+#define SWITCH2_WAKE_BROADCAST_MS 30000
+
+static const uint8_t switch2_wake_mfg_data[] = {
+    0x53, 0x05,                                      // company ID 0x0553 (little-endian)
+    0x01, 0x00, 0x03, 0x7e, 0x05, 0x69, 0x20, 0x00,  // VID 0x057e / PID 0x2069 header
+    0x01,                                            // byte 8
+    0x81,                                            // byte 9: wake flag
+    0xe1, 0x39, 0x65, 0x05, 0x48, 0xc8,              // bytes 10-15: console MAC (little-endian)
+    0x0f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  // tail
+};
+
+static const struct bt_data switch2_wake_ad[] = {
+    BT_DATA_BYTES(BT_DATA_FLAGS, BT_LE_AD_GENERAL | BT_LE_AD_NO_BREDR),
+    BT_DATA(BT_DATA_MANUFACTURER_DATA, switch2_wake_mfg_data, sizeof(switch2_wake_mfg_data)),
+};
+
+static bool switch2_wake_advertising = false;
+
+static void switch2_wake_stop_fn(struct k_work* work) {
+    if (switch2_wake_advertising) {
+        bt_le_adv_stop();
+        switch2_wake_advertising = false;
+        LOG_INF("switch2 wake broadcast stopped");
+    }
+}
+static K_WORK_DELAYABLE_DEFINE(switch2_wake_stop_work, switch2_wake_stop_fn);
+
+static void switch2_send_wakeup() {
+    if (switch2_wake_advertising) {
+        return;
+    }
+
+    struct bt_le_adv_param param = BT_LE_ADV_PARAM_INIT(
+        BT_LE_ADV_OPT_CONNECTABLE | BT_LE_ADV_OPT_USE_IDENTITY,
+        BT_GAP_ADV_FAST_INT_MIN_2, BT_GAP_ADV_FAST_INT_MAX_2, NULL);
+
+    if (!CHK(bt_le_adv_start(&param, switch2_wake_ad, ARRAY_SIZE(switch2_wake_ad), NULL, 0))) {
+        return;
+    }
+
+    switch2_wake_advertising = true;
+    LOG_INF("switch2 wake broadcast started");
+    k_work_reschedule(&switch2_wake_stop_work, K_MSEC(SWITCH2_WAKE_BROADCAST_MS));
+}
+
 static void switch_pro_handle_rumble_report(const uint8_t* report, uint8_t len, bool has_report_id) {
     uint8_t base = has_report_id ? 1 : 0;
     if (len < base + 9) {
@@ -1580,6 +1637,8 @@ static void connected(struct bt_conn* conn, uint8_t conn_err) {
 
     if (is_switch_pro_mode()) {
         switch_pro_bt_connected_events++;
+        // A controller just connected over BLE; wake a sleeping Switch 2.
+        switch2_send_wakeup();
     }
 
     CHK(bt_conn_set_security(conn, BT_SECURITY_L2));
