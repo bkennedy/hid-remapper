@@ -2795,6 +2795,19 @@ USBD_CLASS_DESCR_DEFINE(primary, 2) uint8_t sw2_audio_desc[] = {
     0x07, 0x05, 0x83, 0x0d, 0xc0, 0x00, 0x01,                   // iso IN EP 0x83
     0x07, 0x25, 0x01, 0x00, 0x00, 0x00, 0x00,
 };
+
+// IAD#1: groups interface 0 (HID) — 08 0b 00 01 03 00 00 00. Placed at section
+// order 0 (same as the auto-generated HID interface) to try to land before it.
+USBD_CLASS_DESCR_DEFINE(primary, 0) struct sw2_iad sw2_iad1 = {
+    .bLength = sizeof(struct sw2_iad),
+    .bDescriptorType = 0x0b,
+    .bFirstInterface = 0,
+    .bInterfaceCount = 1,
+    .bFunctionClass = 0x03,  // HID
+    .bFunctionSubClass = 0,
+    .bFunctionProtocol = 0,
+    .iFunction = 0,
+};
 #endif
 
 static const struct hid_ops ops0 = {
