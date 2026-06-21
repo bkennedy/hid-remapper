@@ -1,13 +1,17 @@
 name: release
+# Builds the firmware and attaches the binaries to a release when you publish it
+# in the GitHub UI (Releases → Draft a new release → set a tag → Publish).
 on:
-  push:
-    tags: 'r*'
+  release:
+    types: [published]
+permissions:
+  contents: write
 jobs:
   build-nrf52:
     uses: ./.github/workflows/build-nrf52.yml
   build-rp2040:
     uses: ./.github/workflows/build-rp2040.yml
-  create-release:
+  attach-binaries:
     needs: [ build-nrf52, build-rp2040 ]
     runs-on: ubuntu-22.04
     steps:
@@ -15,7 +19,7 @@ jobs:
         with:
           path: download
           merge-multiple: true
+      # Uploads to the release that triggered this run (the one you just published).
       - uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda
         with:
-          draft: true
           files: download/*

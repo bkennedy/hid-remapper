@@ -13,15 +13,20 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        board: ["adafruit_feather_nrf52840", "seeed_xiao_nrf52840"]
+        board: ["adafruit_feather_nrf52840", "seeed_xiao_nrf52840", "nrf52840dk_nrf52840"]
     steps:
       - uses: actions/checkout@v6
       - name: Build
         run: |
           docker run -v $PWD:/workdir/project -w /workdir/project/firmware-bluetooth nordicplayground/nrfconnect-sdk:v2.2-branch \
             west build -b ${{ matrix.board }}
+          # UF2 for the bootloader boards (Seeed/Feather drag-drop); HEX for the
+          # bare DK (no bootloader — flash via J-Link / nrfutil).
           cp firmware-bluetooth/build/zephyr/remapper.uf2 firmware-bluetooth/remapper_${{ matrix.board }}.uf2
+          cp firmware-bluetooth/build/zephyr/remapper.hex firmware-bluetooth/remapper_${{ matrix.board }}.hex
       - uses: actions/upload-artifact@v7
         with:
           name: artifact-${{ matrix.board }}
-          path: firmware-bluetooth/remapper_${{ matrix.board }}.uf2
+          path: |
+            firmware-bluetooth/remapper_${{ matrix.board }}.uf2
+            firmware-bluetooth/remapper_${{ matrix.board }}.hex
