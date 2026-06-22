@@ -101,7 +101,7 @@ def forward_auth04(dev):
     """Send a 0x15:0x04 placeholder to SW2 Pro to seed its crypto state.
     The challenge bytes don't matter much since we're just priming state;
     the response from real controller will be the constant cert bytes."""
-    pkt = bytes.fromhex("1591000400110000000000000000000000000000000000000000000000")
+    pkt = bytes.fromhex("15910004001100000000000000000000000000000000000000")
     print(f"  → AUTH04 seed to SW2 Pro ({len(pkt)} bytes)")
     try:
         send_bulk_out(dev, pkt)
