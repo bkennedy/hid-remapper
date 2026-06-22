@@ -1,0 +1,2 @@
+osource "/workdir/project/firmware-bluetooth/boards/shields/*/Kconfig.defconfig"
+osource "/workdir/nrf/boards/shields/*/Kconfig.defconfig"

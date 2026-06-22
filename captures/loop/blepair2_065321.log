@@ -1,0 +1,4 @@
+[00:00:17.177,612] [0m<inf> remapper: scan_start: Scanning started.[0m
+[00:00:17.210,479] [0m<inf> remapper: scan_filter_match: scan_filter_match address: 98:7A:14:E5:94:5F (public) connectable: yes[0m
+[00:00:17.210,815] [1;33m<wrn> bt_conn: bt_conn_exists_le: Found valid connection in connected state[0m
+[00:00:17.210,815] [1;33m<wrn> remapper: scan_connecting_error: [0m

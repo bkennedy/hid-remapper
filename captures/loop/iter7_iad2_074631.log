@@ -1,0 +1,502 @@
+*** Booting Zephyr OS build c0689b16ff12 ***
+usbdesc 000: 12 01 00 02 ef 02 01 40 7e 05 69 20 01 02 01 02
+[0usbdesc 010: 03 01 09 02 00 00 00 01 00 a0 32 09 04 00 00 02
+usbdesc 020: 03 00 00 00 09 21 10 01 00 01 22 73 00 07 05 81
+usbdesc 030: 03 40 00 01 07 05 01 03 40 00 01 08 0b 01 01 ff
+usbdesc 040: 00 00 00 09 04 01 00 02 ff 00 00 00 07 05 02 02
+usbdesc 050: 40 00 00 07 05 82 02 40 00 00 04 03 09 04 12 03
+0:00:00.000,335usbdesc 060: 4e 69 6e 74 65 6e 64 6f 00 00 00 00 00 00 00 00
+] [1;31m<err> usb_descriptor: usb_fix_descriptor: Failed usbdesc 070: 30 03 53 77 69 74 63 68 20 32 20 50 72 6f 20 43
+to validate endpoints[0m
+[00:00:00.000,335] [1;31m<usbdesc 080: 6f 6e 74 72 6f 6c 6c 65 72 00 00 00 00 00 00 00
+err> usb_descriptor: usb_get_device_descriptor: Failed to usbdesc 090: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+fixup USB descriptor[0m
+[00:00:00.000,366] [1;31m<eusbdesc 0a0: 22 03 30 31 32 33 34 35 36 37 38 39 41 42 43 44
+rr> usb_device: usb_device_init: Failed to configure USB usbdesc 0b0: 45 46 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+device stack[0m
+[00:00:00.004,302] [0m<inf> remapperusbdesc 0c0: 00 00 00 00 00 00 00 00 83 1e 00 20 d5 8c 04 00
+: main: HID Remapper Bluetooth[0m
+[00:00:00.011,993] usbdesc 0d0: 51 3b 03 00 25 3a 03 00 00 00 00 00 01 39 03 00
+[0m<inf> fs_nvs: nvs_mount: 8 Sectors of 4096 bytes[0musbdesc 0e0: 02 00 00 00 b4 16 00 20 00 00 00 00 ab 1e 00 20
+
+[00:00:00.011,993] [0m<inf> fs_nvs: nvs_mount: alloc usbdesc 0f0: a5 2f 01 00 00 00 00 00 00 00 00 00 dd 00 04 00
+wra: 0, fe8[0m
+[00:00:00.011,993] [0m<inf> fs_nvs:usbdesc 100: 00 00 00 00 02 00 00 00 d8 05 00 20 00 00 00 00
+ nvs_mount: data wra: 0, 0[0m
+[00:0usbdesc 110: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+0:00.012,237] [0m<inf> sdc_hci_driver: hci_driver_open: SoftDevice Controller build revision: 
+                                         6d 90 41 2a 38 e8 ad 17  29 a5 03 38 39 27 d7 85 |m.A*8... )..89'..
+                                         1f 85 d8 e1                                      |....             [0m
+[00:00:00.014,678] [0m<inf> bt_hci_core: hci_vs_init: HW Platform: Nordic Semiconductor (0x0002)[0m
+[00:00:00.014,709] [0m<inf> bt_hci_core: hci_vs_init: HW Variant: nRF52x (0x0002)[0m
+[00:00:00.014,739] [0m<inf> bt_hci_core: hci_vs_init: Firmware: Standard Bluetooth controller (0x00) Version 109.16784 Build 2917677098[0m
+[00:00:00.015,258] [0m<inf> bt_hci_core: bt_init: No ID address. App must call settings_load()[0m
+[00:00:00.015,777] [0m<inf> bt_hci_core: bt_dev_show_info: Identity: C6:5F:36:95:D7:F9 (random)[0m
+[00:00:00.015,808] [0m<inf> bt_hci_core: bt_dev_show_info: HCI: version 5.3 (0x0c) revision 0x11fa, manufacturer 0x0059[0m
+[00:00:00.015,838] [0m<inf> bt_hci_core: bt_dev_show_info: LMP: version 5.3 (0x0c) subver 0x11fa[0m
+[00:00:00.015,899] [0m<inf> remapper: switch2_flight_dump_saved: switch2_flight dump count=0 next_seq=0 wrapped=0[0m
+[00:00:00.015,899] [0m<inf> remapper: main: Switch 2 console USB build: forcing Switch 2 Pro descriptor[0m
+[00:00:00.017,059] [0m<inf> usb_hid: hid_do_status_cb: Device connected[0m
+[00:00:00.020,172] [0m<inf> usb_hid: hid_do_status_cb: Device suspended[0m
+[00:00:00.121,551] [0m<inf> usb_hid: hid_do_status_cb: Device resumed[0m
+[00:00:00.121,551] [0m<inf> usb_hid: hid_do_status_cb: from suspend[0m
+[00:00:00.121,612] [0m<inf> usb_hid: hid_do_status_cb: Device reset detected[0m
+[00:00:00.193,054] [0m<inf> usb_hid: hid_do_status_cb: Device reset detected[0m
+[00:00:00.214,416] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=0 report_q=0/0 response_q=0/0 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=0 host_drop=0 set=0 translated=0 mapped=0/0 heartbeat=0/0 response=0/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[1;31m--- 12 messages dropped ---
+[0m[00:00:00.264,678] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 7 messages dropped ---
+[0m[00:00:00.304,168] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 9 messages dropped ---
+[0m[00:00:00.336,242] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 6 messages dropped ---
+[0m[00:00:00.352,142] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 12 messages dropped ---
+[0m[00:00:00.415,008] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 8 messages dropped ---
+[0m[00:00:00.439,117] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 4 messages dropped ---
+[0m[00:00:00.455,169] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 13 messages dropped ---
+[0m[00:00:00.495,178] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 9 messages dropped ---
+[0m[00:00:00.535,003] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[00:00:00.535,125] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 6 messages dropped ---
+[0m[00:00:00.566,070] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 4 messages dropped ---
+[0m[00:00:00.582,092] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 10 messages dropped ---
+[0m[00:00:00.622,039] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 14 messages dropped ---
+[0m[00:00:00.672,302] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=0 report_q=0/0 response_q=0/0 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=0 host_drop=0 set=0 translated=0 mapped=0/1 heartbeat=0/57 response=0/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[1;31m--- 12 messages dropped ---
+[0m[00:00:00.717,132] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 7 messages dropped ---
+[0m[00:00:00.743,316] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=0 report_q=0/0 response_q=0/0 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=0 host_drop=0 set=0 translated=0 mapped=0/1 heartbeat=0/67 response=0/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[1;31m--- 14 messages dropped ---
+[0m[00:00:00.805,145] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 5 messages dropped ---
+[0m[00:00:00.829,132] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 13 messages dropped ---
+[0m[00:00:00.875,000] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 3 messages dropped ---
+[0m[00:00:00.891,113] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 2 messages dropped ---
+[0m[00:00:00.899,017] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 6 messages dropped ---
+[0m[00:00:00.915,557] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 3 messages dropped ---
+[0m[00:00:00.931,121] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 6 messages dropped ---
+[0m[00:00:00.963,043] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 10 messages dropped ---
+[0m[00:00:01.002,075] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 2 messages dropped ---
+[0m[00:00:01.018,096] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 6 messages dropped ---
+[0m[00:00:01.034,149] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 3 messages dropped ---
+[0m[00:00:01.058,013] [0m<inf> usb_hid: hid_do_status_cb: Device reset detected[0m
+[1;31m--- 7 messages dropped ---
+[0m[00:00:01.082,122] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 8 messages dropped ---
+[0m[00:00:01.108,428] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=0 report_q=0/0 response_q=0/0 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=0 host_drop=0 set=0 translated=0 mapped=0/1 heartbeat=0/113 response=0/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[1;31m--- 11 messages dropped ---
+[0m[00:00:01.161,102] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 5 messages dropped ---
+[0m[00:00:01.177,093] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 2 messages dropped ---
+[0m[00:00:01.185,333] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 8 messages dropped ---
+[0m[00:00:01.214,355] [0m<inf> remapper: scan_setup_filters: scanning for Switch 2 Pro Controller manufacturer data[0m
+[1;31m--- 5 messages dropped ---
+[0m[00:00:01.241,088] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 5 messages dropped ---
+[0m[00:00:01.251,342] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=0 report_q=0/0 response_q=0/0 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=0 host_drop=0 set=0 translated=0 mapped=0/1 heartbeat=0/131 response=0/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[1;31m--- 10 messages dropped ---
+[0m[00:00:01.305,297] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 4 messages dropped ---
+[0m[00:00:01.313,140] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 8 messages dropped ---
+[0m[00:00:01.361,297] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 4 messages dropped ---
+[0m[00:00:01.377,136] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 7 messages dropped ---
+[0m[00:00:01.401,123] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 7 messages dropped ---
+[0m[00:00:01.441,131] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 8 messages dropped ---
+[0m[00:00:01.473,022] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 5 messages dropped ---
+[0m[00:00:01.497,009] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 2 messages dropped ---
+[0m[00:00:01.513,122] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 10 messages dropped ---
+[0m[00:00:01.561,004] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 5 messages dropped ---
+[0m[00:00:01.577,117] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[00:00:01.577,178] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 8 messages dropped ---
+[0m[00:00:01.625,000] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 6 messages dropped ---
+[0m[00:00:01.641,143] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 8 messages dropped ---
+[0m[00:00:01.689,300] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 5 messages dropped ---
+[0m[00:00:01.713,012] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 2 messages dropped ---
+[0m[00:00:01.742,187] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 6 messages dropped ---
+[0m[00:00:01.766,021] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 3 messages dropped ---
+[0m[00:00:01.790,008] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 4 messages dropped ---
+[0m[00:00:01.806,335] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 9 messages dropped ---
+[0m[00:00:01.838,134] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 6 messages dropped ---
+[0m[00:00:01.878,295] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 6 messages dropped ---
+[0m[00:00:01.902,130] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 11 messages dropped ---
+[0m[00:00:01.950,012] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 4 messages dropped ---
+[0m[00:00:01.974,304] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 4 messages dropped ---
+[0m[00:00:01.982,330] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 9 messages dropped ---
+[0m[00:00:02.022,003] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 3 messages dropped ---
+[0m[00:00:02.038,330] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 9 messages dropped ---
+[0m[00:00:02.078,002] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 4 messages dropped ---
+[0m[00:00:02.102,020] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 5 messages dropped ---
+[0m[00:00:02.118,347] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 4 messages dropped ---
+[0m[00:00:02.142,303] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[00:00:02.142,333] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[00:00:02.150,299] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 3 messages dropped ---
+[0m[00:00:02.174,041] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 2 messages dropped ---
+[0m[00:00:02.182,006] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 6 messages dropped ---
+[0m[00:00:02.214,019] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 3 messages dropped ---
+[0m[00:00:02.230,010] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 4 messages dropped ---
+[0m[00:00:02.246,154] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 8 messages dropped ---
+[0m[00:00:02.270,141] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 6 messages dropped ---
+[0m[00:00:02.310,302] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 6 messages dropped ---
+[0m[00:00:02.334,136] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 10 messages dropped ---
+[0m[00:00:02.374,298] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 3 messages dropped ---
+[0m[00:00:02.398,010] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 5 messages dropped ---
+[0m[00:00:02.414,001] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 4 messages dropped ---
+[0m[00:00:02.430,175] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 6 messages dropped ---
+[0m[00:00:02.608,489] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 3 messages dropped ---
+[0m[00:00:02.624,298] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 7 messages dropped ---
+[0m[00:00:02.648,010] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 3 messages dropped ---
+[0m[00:00:02.672,027] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 6 messages dropped ---
+[0m[00:00:02.696,014] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 3 messages dropped ---
+[0m[00:00:02.712,005] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 5 messages dropped ---
+[0m[00:00:02.736,328] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 9 messages dropped ---
+[0m[00:00:02.768,127] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 7 messages dropped ---
+[0m[00:00:02.808,288] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 5 messages dropped ---
+[0m[00:00:02.832,122] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 9 messages dropped ---
+[0m[00:00:02.864,135] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 7 messages dropped ---
+[0m[00:00:02.896,148] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 10 messages dropped ---
+[0m[00:00:02.944,122] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 8 messages dropped ---
+[0m[00:00:02.976,135] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 6 messages dropped ---
+[0m[00:00:03.008,361] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=0 fails=331 enabled=0 rep0=09 rep2=15[0m
+[1;31m--- 8 messages dropped ---
+[0m[00:00:03.040,405] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 7 messages dropped ---
+[0m[00:00:03.072,021] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 5 messages dropped ---
+[0m[00:00:03.096,282] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 3 messages dropped ---
+[0m[00:00:03.120,300] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 6 messages dropped ---
+[0m[00:00:03.144,012] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 3 messages dropped ---
+[0m[00:00:03.160,003] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 5 messages dropped ---
+[0m[00:00:03.184,143] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 9 messages dropped ---
+[0m[00:00:03.216,125] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 5 messages dropped ---
+[0m[00:00:03.266,021] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 5 messages dropped ---
+[0m[00:00:03.282,135] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 8 messages dropped ---
+[0m[00:00:03.314,331] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 8 messages dropped ---
+[0m[00:00:03.354,125] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 8 messages dropped ---
+[0m[00:00:03.394,012] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 6 messages dropped ---
+[0m[00:00:03.418,304] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 3 messages dropped ---
+[0m[00:00:03.442,016] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 4 messages dropped ---
+[0m[00:00:03.450,134] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 7 messages dropped ---
+[0m[00:00:03.490,020] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 4 messages dropped ---
+[0m[00:00:03.514,007] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 3 messages dropped ---
+[0m[00:00:03.522,125] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 8 messages dropped ---
+[0m[00:00:03.562,133] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 10 messages dropped ---
+[0m[00:00:03.610,015] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 3 messages dropped ---
+[0m[00:00:03.618,347] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 4 messages dropped ---
+[0m[00:00:03.634,124] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 4 messages dropped ---
+[0m[00:00:03.658,020] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 5 messages dropped ---
+[0m[00:00:03.690,032] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 2 messages dropped ---
+[0m[00:00:03.698,303] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 5 messages dropped ---
+[0m[00:00:03.722,137] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 8 messages dropped ---
+[0m[00:00:03.754,302] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 5 messages dropped ---
+[0m[00:00:03.778,015] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 4 messages dropped ---
+[0m[00:00:03.794,128] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 7 messages dropped ---
+[0m[00:00:03.834,136] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 8 messages dropped ---
+[0m[00:00:03.874,298] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 9 messages dropped ---
+[0m[00:00:03.906,005] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 3 messages dropped ---
+[0m[00:00:03.930,297] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 6 messages dropped ---
+[0m[00:00:03.946,136] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 6 messages dropped ---
+[0m[00:00:04.014,373] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=0 fails=449 enabled=0 rep0=09 rep2=15[0m
+[1;31m--- 6 messages dropped ---
+[0m[00:00:04.054,016] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 4 messages dropped ---
+[0m[00:00:04.070,129] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 8 messages dropped ---
+[0m[00:00:04.110,015] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 5 messages dropped ---
+[0m[00:00:04.126,007] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 5 messages dropped ---
+[0m[00:00:04.150,299] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 3 messages dropped ---
+[0m[00:00:04.166,107] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 4 messages dropped ---
+[0m[00:00:04.190,124] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 9 messages dropped ---
+[0m[00:00:04.222,137] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 7 messages dropped ---
+[0m[00:00:04.254,302] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 3 messages dropped ---
+[0m[00:00:04.278,289] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 4 messages dropped ---
+[0m[00:00:04.294,006] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 3 messages dropped ---
+[0m[00:00:04.310,333] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 9 messages dropped ---
+[0m[00:00:04.342,132] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 8 messages dropped ---
+[0m[00:00:04.390,014] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 2 messages dropped ---
+[0m[00:00:04.390,136] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[00:00:04.398,284] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[00:00:04.398,345] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[00:00:04.406,005] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[00:00:04.406,127] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[00:00:04.414,001] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 3 messages dropped ---
+[0m[00:00:04.430,297] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 3 messages dropped ---
+[0m[00:00:04.446,136] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 9 messages dropped ---
+[0m[00:00:04.486,297] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 2 messages dropped ---
+[0m[00:00:04.502,136] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 10 messages dropped ---
+[0m[00:00:04.542,297] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 5 messages dropped ---
+[0m[00:00:04.566,009] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 3 messages dropped ---
+[0m[00:00:04.582,122] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 9 messages dropped ---
+[0m[00:00:04.622,009] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 3 messages dropped ---
+[0m[00:00:04.646,301] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 5 messages dropped ---
+[0m[00:00:04.662,017] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 3 messages dropped ---
+[0m[00:00:04.678,131] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 10 messages dropped ---
+[0m[00:00:04.896,331] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 11 messages dropped ---
+[0m[00:00:04.944,122] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 9 messages dropped ---
+[0m[00:00:04.976,135] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 8 messages dropped ---
+[0m[00:00:05.016,021] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 4 messages dropped ---
+[0m[00:00:05.040,008] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 4 messages dropped ---
+[0m[00:00:05.056,304] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 5 messages dropped ---
+[0m[00:00:05.072,143] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 8 messages dropped ---
+[0m[00:00:05.112,304] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 5 messages dropped ---
+[0m[00:00:05.136,016] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 3 messages dropped ---
+[0m[00:00:05.152,008] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[00:00:05.152,099] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[00:00:05.160,003] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 3 messages dropped ---
+[0m[00:00:05.176,025] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 3 messages dropped ---
+[0m[00:00:05.200,012] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 7 messages dropped ---
+[0m[00:00:05.224,304] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 2 messages dropped ---
+[0m[00:00:05.240,142] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 8 messages dropped ---
+[0m[00:00:05.272,003] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 3 messages dropped ---
+[0m[00:00:05.288,330] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 10 messages dropped ---
+[0m[00:00:05.336,303] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 5 messages dropped ---
+[0m[00:00:05.352,020] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 4 messages dropped ---
+[0m[00:00:05.376,007] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 4 messages dropped ---
+[0m[00:00:05.392,303] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 2 messages dropped ---
+[0m[00:00:05.408,142] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 10 messages dropped ---
+[0m[00:00:05.456,298] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 3 messages dropped ---
+[0m[00:00:05.514,282] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 3 messages dropped ---
+[0m[00:00:05.522,003] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 3 messages dropped ---
+[0m[00:00:05.546,020] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 5 messages dropped ---
+[0m[00:00:05.562,011] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 4 messages dropped ---
+[0m[00:00:05.586,303] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 4 messages dropped ---
+[0m[00:00:05.602,050] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 4 messages dropped ---
+[0m[00:00:05.626,129] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 8 messages dropped ---
+[0m[00:00:05.666,015] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 4 messages dropped ---
+[0m[00:00:05.682,128] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 9 messages dropped ---
+[0m[00:00:05.722,137] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 8 messages dropped ---
+[0m[00:00:05.762,298] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 5 messages dropped ---
+[0m[00:00:05.778,289] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 5 messages dropped ---
+[0m[00:00:05.810,302] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 4 messages dropped ---
+[0m[00:00:05.826,019] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 4 messages dropped ---
+[0m[00:00:05.850,006] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 2 messages dropped ---
+[0m[00:00:05.858,123] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 9 messages dropped ---
+[0m[00:00:05.890,136] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 8 messages dropped ---
+[0m[00:00:05.930,328] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 7 messages dropped ---
+[0m[00:00:05.962,005] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 5 messages dropped ---
+[0m[00:00:05.994,018] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 4 messages dropped ---
+[0m[00:00:06.002,136] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 7 messages dropped ---
+[0m[00:00:06.042,297] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 4 messages dropped ---
+[0m[00:00:06.058,135] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 10 messages dropped ---
+[0m[00:00:06.098,022] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 2 messages dropped ---
+[0m[00:00:06.114,135] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 9 messages dropped ---
+[0m[00:00:06.154,022] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 4 messages dropped ---
+[0m[00:00:06.170,135] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 7 messages dropped ---
+[0m[00:00:06.210,021] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 5 messages dropped ---
+[0m[00:00:06.250,000] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 2 messages dropped ---
+[0m[00:00:06.258,331] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 8 messages dropped ---
+[0m[00:00:06.298,126] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 9 messages dropped ---
+[0m[00:00:06.330,139] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 7 messages dropped ---
+[0m[00:00:06.370,330] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 10 messages dropped ---
+[0m[00:00:06.410,003] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 5 messages dropped ---
+[0m[00:00:06.434,020] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 3 messages dropped ---
+[0m[00:00:06.458,007] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 4 messages dropped ---
+[0m[00:00:06.466,125] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 8 messages dropped ---
+[0m[00:00:06.514,007] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 4 messages dropped ---
+[0m[00:00:06.522,125] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 8 messages dropped ---
+[0m[00:00:06.570,007] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 5 messages dropped ---
+[0m[00:00:06.594,299] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[1;31m--- 3 messages dropped ---
+[0m[00:00:06.602,142] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 8 messages dropped ---
+[0m[00:00:06.634,124] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[00:00:06.642,303] [1;33m<wrn> usb_hid: hid_int_ep_write: Device is not configured[0m
+[00:00:06.642,333] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 6 messages dropped ---
+[0m[00:00:06.674,133] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m
+[1;31m--- 8 messages dropped ---
+[0m[00:00:06.706,329] [1;31m<err> remapper: switch_pro_send_input_heartbeat: hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL) returned -11 (../src/main.cc:1508)[0m

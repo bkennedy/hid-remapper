@@ -403,6 +403,30 @@ const uint8_t our_report_descriptor_switch_pro[] = {
     0xC0,        // End Collection
 };
 
+// Switch 2 Pro controller (PID 0x2069) descriptor, captured from hardware.
+// Report ID 0x09 = standard input (buttons + 4x 12-bit sticks).
+// Report ID 0x05 = extended input (rumble feedback present).
+// Report IDs 0x01/0x02 = vendor output (host commands to controller).
+const uint8_t our_report_descriptor_switch2_pro[] = {
+    0x05, 0x01, 0x09, 0x05, 0xa1, 0x01, 0x85, 0x05,
+    0x05, 0xff, 0x09, 0x01, 0x15, 0x00, 0x26, 0xff,
+    0x00, 0x95, 0x3f, 0x75, 0x08, 0x81, 0x02, 0x85,
+    0x09, 0x09, 0x01, 0x95, 0x02, 0x81, 0x02, 0x05,
+    0x09, 0x19, 0x01, 0x29, 0x15, 0x25, 0x01, 0x95,
+    0x15, 0x75, 0x01, 0x81, 0x02, 0x95, 0x01, 0x75,
+    0x03, 0x81, 0x03, 0x05, 0x01, 0x09, 0x01, 0xa1,
+    0x00, 0x09, 0x30, 0x09, 0x31, 0x09, 0x33, 0x09,
+    0x35, 0x26, 0xff, 0x0f, 0x95, 0x04, 0x75, 0x0c,
+    0x81, 0x02, 0xc0, 0x05, 0xff, 0x09, 0x02, 0x26,
+    0xff, 0x00, 0x95, 0x34, 0x75, 0x08, 0x91, 0x02,
+    0x85, 0x02, 0x09, 0x01, 0x95, 0x3f, 0x91, 0x02,
+    0xc0,
+
+    0x06, 0x00, 0xff, 0x09, 0x20, 0xa1, 0x01, 0x09,
+    0x20, 0x85, REPORT_ID_CONFIG, 0x75, 0x08, 0x95,
+    CONFIG_SIZE, 0xb1, 0x02, 0xc0,
+};
+
 uint8_t const our_report_descriptor_ps4[] = {
     0x05, 0x01,        // Usage Page (Generic Desktop Ctrls)
     0x09, 0x05,        // Usage (Game Pad)
@@ -676,6 +700,20 @@ void switch_pro_clear_report(uint8_t* report, uint8_t report_id, uint16_t len) {
     }
 }
 
+void switch2_pro_clear_report(uint8_t* report, uint8_t report_id, uint16_t len) {
+    memset(report, 0, len);
+    if (report_id == 0x09 && len >= 11) {
+        report[1] = 0x20;  // USB connected, battery OK (real capture: 0x20)
+        report[8] = 0x08;
+        report[10] = 0x08;
+    } else if (report_id == 0x05 && len >= 63) {
+        report[0x1f] = 0xd8;
+        report[0x20] = 0x0e;
+        report[0x21] = 0x34;
+        report[0x29] = 0x01;
+    }
+}
+
 void ps4_clear_report(uint8_t* report, uint8_t report_id, uint16_t len) {
     memset(report, 0, len);
     report[0] = report[1] = report[2] = report[3] = 0x80;
@@ -732,6 +770,18 @@ int32_t switch_pro_default_value(uint32_t usage) {
         case 0x00010032:
         case 0x00010035:
             return 0x8000;
+        default:
+            return 0;
+    }
+}
+
+int32_t switch2_pro_default_value(uint32_t usage) {
+    switch (usage) {
+        case 0x00010030:
+        case 0x00010031:
+        case 0x00010033:
+        case 0x00010035:
+            return 0x800;
         default:
             return 0;
     }
@@ -828,6 +878,16 @@ const our_descriptor_def_t our_descriptors[] = {
         .handle_received_report = do_handle_received_report,
         .clear_report = switch_pro_clear_report,
         .default_value = switch_pro_default_value,
+    },
+    {
+        .idx = 7,
+        .descriptor = our_report_descriptor_switch2_pro,
+        .descriptor_length = sizeof(our_report_descriptor_switch2_pro),
+        .vid = 0x057E,
+        .pid = 0x2069,
+        .handle_received_report = do_handle_received_report,
+        .clear_report = switch2_pro_clear_report,
+        .default_value = switch2_pro_default_value,
     },
 };
 
