@@ -220,6 +220,7 @@ static uint32_t switch_pro_response_drops = 0;
 static uint32_t switch_pro_report_q_highwater = 0;
 static uint32_t switch_pro_response_q_highwater = 0;
 static uint32_t switch_pro_bt_connected_events = 0;
+static int64_t sw2_lr_autopress_ms = 0;  // start time for L+R auto-press; 0=not started
 static uint32_t switch_pro_bt_disconnected_events = 0;
 static uint32_t switch_pro_hogp_ready_events = 0;
 static uint32_t switch_pro_conn_count_highwater = 0;
@@ -551,6 +552,7 @@ static void switch_pro_reset_session() {
     switch_pro_last_input_ms = 0;
     switch_pro_last_stats_ms = 0;
     switch_pro_last_button_log_ms = 0;
+    sw2_lr_autopress_ms = 0;  // reset per-session so L+R fires fresh after each USB CONFIGURE
     k_msgq_purge(&switch_pro_response_q);
     switch_pro_reset_input();
     switch_pro_reset_axis_diagnostics();
@@ -1040,11 +1042,21 @@ static void switch2_pro_handle_usb_command(uint8_t seq, uint8_t sub, const uint8
         }
         case 0x0d: {
             switch_pro_input_enabled = true;
+            sw2_lr_autopress_ms = 0;  // reset auto-press for new session
             switch2_flight_record(Switch2FlightEvent::INPUT_ENABLE, sub, switch_pro_input_enabled, len >= 9 ? report[8] : 0, 0, report, len);
-            uint8_t response[12] = {};
-            switch2_pro_command_header(response, 0x03, seq, sub);
-            response[8] = 0x01;
-            switch_pro_queue_response(response, sizeof(response));
+            // Rate-limit 0x0d acks to prevent response queue flood death spiral.
+            // Console floods 0x0d when it doesn't get a timely ack; we purge
+            // stale responses and send exactly one ack per 200ms window.
+            static int64_t last_0d_ms = -1000;
+            int64_t now = k_uptime_get();
+            if (now - last_0d_ms >= 200) {
+                last_0d_ms = now;
+                k_msgq_purge(&switch_pro_response_q);
+                uint8_t response[12] = {};
+                switch2_pro_command_header(response, 0x03, seq, sub);
+                response[8] = 0x01;
+                switch_pro_queue_response(response, sizeof(response));
+            }
             break;
         }
         case 0x0a:
@@ -1782,8 +1794,37 @@ static bool switch_pro_send_input_heartbeat() {
         return false;
     }
 
+    // When USB host hasn't started the session (no 0x0d yet), rate-limit to 4 Hz
+    // to avoid flooding the USBD event queue with EAGAIN errors.
+    if (is_switch2_pro_mode() && !switch_pro_input_enabled) {
+        static int64_t last_sw2_probe_ms = 0;
+        if (now - last_sw2_probe_ms < 250) return false;
+        last_sw2_probe_ms = now;
+    }
+
     switch_pro_current_input[1] = switch_pro_timer++;
     switch_pro_last_input_ms = now;
+
+    // Auto-press L+R 3x after input enabled so DK self-registers on Change Grip screen
+    // without requiring user touchscreen interaction (which causes console kernel panic).
+    // SW2 Pro layout: byte[3] bit4=R, byte[4] bit4=L
+    if (is_switch2_pro_mode() && switch_pro_input_enabled) {
+        if (!sw2_lr_autopress_ms) sw2_lr_autopress_ms = now + 4000;
+        int64_t since = now - sw2_lr_autopress_ms;
+        if (since >= 0 && since < 1500) {
+            if ((since % 500) < 150) {
+                switch_pro_current_input[3] |= 0x10;  // R pressed
+                switch_pro_current_input[4] |= 0x10;  // L pressed
+            } else {
+                switch_pro_current_input[3] &= ~0x10;
+                switch_pro_current_input[4] &= ~0x10;
+            }
+        } else {
+            switch_pro_current_input[3] &= ~0x10;
+            switch_pro_current_input[4] &= ~0x10;
+        }
+    }
+
     bool sent = CHK(hid_int_ep_write(hid_dev0, switch_pro_current_input, sizeof(switch_pro_current_input), NULL));
     if (is_switch2_pro_mode()) {
         switch2_flight_record_send_input(sent);
@@ -1798,9 +1839,11 @@ static bool switch_pro_send_input_heartbeat() {
     static int64_t last_hb_log_ms = 0;
     if (now - last_hb_log_ms >= 1000) {
         last_hb_log_ms = now;
-        LOG_INF("sw2 heartbeat: writes=%u fails=%u enabled=%u rep0=%02x rep2=%02x",
+        LOG_INF("sw2 heartbeat: writes=%u fails=%u enabled=%u rep0=%02x rep2=%02x b34=%02x%02x autopress=%lld",
             switch_pro_heartbeat_writes, switch_pro_heartbeat_write_fails,
-            switch_pro_input_enabled, switch_pro_current_input[0], switch_pro_current_input[2]);
+            switch_pro_input_enabled, switch_pro_current_input[0], switch_pro_current_input[2],
+            switch_pro_current_input[3], switch_pro_current_input[4],
+            (long long)(sw2_lr_autopress_ms ? now - sw2_lr_autopress_ms : -9999));
     }
     return sent;
 }
