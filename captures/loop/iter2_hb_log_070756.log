@@ -1,0 +1,29 @@
+*** Booting Zephyr OS build c0689b16ff12 ***
+[00:00:00.004,272] [0m<inf> remapper: main: HID Remapper Bluetooth[0m
+[00:00:00.012,054] [0m<inf> fs_nvs: nvs_mount: 8 Sectors of 4096 bytes[0m
+[00:00:00.012,084] [0m<inf> fs_nvs: nvs_mount: alloc wra: 0, fe8[0m
+[00:00:00.012,084] [0m<inf> fs_nvs: nvs_mount: data wra: 0, 0[0m
+[00:00:00.012,298] [0m<inf> sdc_hci_driver: hci_driver_open: SoftDevice Controller build revision: 
+                                         6d 90 41 2a 38 e8 ad 17  29 a5 03 38 39 27 d7 85 |m.A*8... )..89'..
+                                         1f 85 d8 e1                                      |....             [0m
+[00:00:00.014,739] [0m<inf> bt_hci_core: hci_vs_init: HW Platform: Nordic Semiconductor (0x0002)[0m
+[00:00:00.014,770] [0m<inf> bt_hci_core: hci_vs_init: HW Variant: nRF52x (0x0002)[0m
+[00:00:00.014,801] [0m<inf> bt_hci_core: hci_vs_init: Firmware: Standard Bluetooth controller (0x00) Version 109.16784 Build 2917677098[0m
+[00:00:00.015,319] [0m<inf> bt_hci_core: bt_init: No ID address. App must call settings_load()[0m
+[00:00:00.015,838] [0m<inf> bt_hci_core: bt_dev_show_info: Identity: C6:5F:36:95:D7:F9 (random)[0m
+[00:00:00.015,869] [0m<inf> bt_hci_core: bt_dev_show_info: HCI: version 5.3 (0x0c) revision 0x11fa, manufacturer 0x0059[0m
+[00:00:00.015,899] [0m<inf> bt_hci_core: bt_dev_show_info: LMP: version 5.3 (0x0c) subver 0x11fa[0m
+[00:00:00.015,960] [0m<inf> remapper: switch2_flight_dump_saved: switch2_flight dump count=0 next_seq=0 wrapped=0[0m
+[00:00:00.017,120] [0m<inf> usb_hid: hid_do_status_cb: Device connected[0m
+[00:00:00.017,150] [0m<inf> usb_hid: hid_do_status_cb: Device connected[0m
+[00:00:00.020,233] [0m<inf> usb_hid: hid_do_status_cb: Device suspended[0m
+[00:00:00.020,233] [0m<inf> usb_hid: hid_do_status_cb: Device suspended[0m
+[00:00:00.121,673] [0m<inf> usb_hid: hid_do_status_cb: Device resumed[0m
+[00:00:00.121,673] [0m<inf> usb_hid: hid_do_status_cb: from suspend[0m
+[00:00:00.121,704] [0m<inf> usb_hid: hid_do_status_cb: Device resumed[0m
+[00:00:00.121,704] [0m<inf> usb_hid: hid_do_status_cb: from suspend[0m
+[00:00:00.121,765] [0m<inf> usb_hid: hid_do_status_cb: Device reset detected[0m
+[00:00:00.121,765] [0m<inf> usb_hid: hid_do_status_cb: Device reset detected[0m
+[00:00:00.196,319] [0m<inf> usb_hid: hid_do_status_cb: Device configured[0m
+[00:00:00.196,319] [0m<inf> usb_hid: hid_do_status_cb: Device configured[0m
+[00:00:01.074,737] [0m<inf> remapper: scan_start: Scanning started.[0m

@@ -1,0 +1,357 @@
+*** Booting Zephyr OS build c0689b16ff12 ***
+[usbdesc 000: 12 01 00 02 ef 02 01 40 7e 05 69 20 01 02 01 02
+00usbdesc 010: 03 01 09 02 ba 00 05 01 00 a0 32 08 0b 00 01 03
+usbdesc 020: 00 00 00 09 04 00 00 02 03 00 00 00 09 21 10 01
+usbdesc 030: 00 01 22 73 00 07 05 81 03 40 00 04 07 05 01 03
+usbdesc 040: 40 00 04 08 0b 01 01 ff 00 00 00 09 04 01 00 02
+usbdesc 050: ff 00 00 00 07 05 02 02 40 00 00 07 05 82 02 40
+:00:00.004,302]usbdesc 060: 00 00 08 0b 02 03 01 01 00 00 09 04 02 00 00 01
+ [0m<inf> remapper: main: HID Remapper Bluetooth[0m
+usbdesc 070: 01 00 00 0a 24 01 00 01 47 00 02 03 04 0c 24 02
+[00:00:00.011,718] [0m<inf> fs_nvs: nvs_mount: 8 Sectorsusbdesc 080: 01 01 01 00 02 03 00 00 00 0a 24 06 02 01 01 03
+ of 4096 bytes[0m
+[00:00:00.011,749] [0m<inf> fs_nvusbdesc 090: 00 00 00 09 24 03 03 02 03 00 02 00 0c 24 02 04
+s: nvs_mount: alloc wra: 0, fe8[0m
+[00:00:00.011,749]usbdesc 0a0: 01 02 00 01 00 00 00 00 09 24 06 05 04 01 03 00
+ [0m<inf> fs_nvs: nvs_mount: data wra: 0, 0[0m
+usbdesc 0b0: 00 09 24 03 06 01 01 00 05 00 09 04 03 00 00 01
+[00:00:00.011,993] [0m<inf> sdc_hci_driver: hciusbdesc 0c0: 02 00 00 09 04 04 00 00 01 02 00 00 04 03 09 04
+_driver_open: SoftDevice Controller build revision: 
+    usbdesc 0d0: 12 03 4e 00 69 00 6e 00 74 00 65 00 6e 00 64 00
+                                     6d 90 41 2a 38 e8 adusbdesc 0e0: 6f 00 30 03 53 00 77 00 69 00 74 00 63 00 68 00
+ 17  29 a5 03 38 39 27 d7 85 |m.A*8... )..89'..
+         usbdesc 0f0: 20 00 32 00 20 00 50 00 72 00 6f 00 20 00 43 00
+                                1f 85 d8 e1            usbdesc 100: 6f 00 6e 00 74 00 72 00 6f 00 6c 00 6c 00 65 00
+                          |....             [0m
+usbdesc 110: 72 00 22 03 31 00 44 00 33 00 46USB_SETUP bm=0xc0 req=0x03 status=identity_ACK
+ 00 32USB_SETUP bm=0xc0 req=0x02 status=proto_ACK
+ 0USB_SETUP bm=0x40 req=0x04 val=0x0276 status=set_ACK
+0 30 00
+[00:00:00.014,434] [0m<inf> btUSB_EP_OUT ep=0x02 len=16 data=0391000d
+_hci_core: hci_vs_init:USB_EP_OUT ep=0x02 len=8 data=07910001
+ HW Platform: Nordic Semiconductor (0x0002)[0m
+[00:00:00.014,465] [0m<inf> bt_hci_core: hci_vs_init: HW Variant: nRF52x (0x0002)[0m
+USB_EP_OUT ep=0x02 len=8 data=16910001
+[00:00:00.014,495] [0m<inf> bt_hci_core: hci_vs_init: Firmware: Standard Bluetooth controller (0x00) Version 109.16784 Build 2917677098[0m
+[00:00:00.015,014] [0m<inf> bt_hci_core: bt_init: No ID address. App must call settings_load()[0m
+USB_EP_OUT ep=0x02 len=12 data=0b910007
+[00:00:00.015,533] [0m<inf> bt_hci_core: bt_dev_show_info: Identity: C6:5F:36:95:D7:F9 (random)[0m
+[00:00:00.015,563] [0m<inf> bt_hci_core: bt_dev_show_info: HCI: version 5.3 (0x0c) revision 0x11USB_EP_OUT ep=0x02 len=22 data=15910001
+USB_INIT bt_mac_resp sub=0x01 mac=c6:5f:36:95:d7:f9
+fa, manufacturer 0x0059[0m
+[00:00:00.015,594] [0m<inf> bt_hci_core: bt_dev_show_info: LMP: version 5.3 (0x0c) subver 0x11fa[0m
+[00:0USB_EP_OUT ep=0x02 len=12 data=0c910002
+0:00.015,655] [0m<inf> remapper: switch2_flight_dump_saved: switch2_flight dump count=0 next_seq=0 wrapped=0[0m
+[00:00:00.015,655] [0m<inf> remapper: main: Switch 2 cUSB_EP_OUT ep=0x02 len=16 data=02910004
+onsole USB build: forcing Switch 2 Pro descriptor[0m
+[00:00:00.016,815] [0m<inf> usb_hid: hid_do_status_cb: Device connected[0m
+[00:00:00.019,927] [0m<inf> usbUSB_EP_OUT ep=0x02 len=16 data=02910004
+_hid: hid_do_status_cb: Device suspended[0m
+[00:00:00.121,307] [0m<inf> usb_hid: hid_do_status_cb: Device resumed[0m
+[00:00:00.121,307] [0m<inf> usb_hid:USB_EP_OUT ep=0x02 len=16 data=02910004
+ hid_do_status_cb: from suspend[0m
+[00:00:00.121,368] [0m<inf> usb_hid: hid_do_status_cb: Device reset detected[0m
+[00:00:00.196,319] [0m<inf> usb_hid: hid_do_statusUSB_EP_OUT ep=0x02 len=16 data=02910004
+_cb: Device configured[0m
+[00:00:00.213,775] [0m<inf> remapper: switch_pro_handle_output_report: pro out_report desc=7 len=64: 00 00 00 00[0m
+[00:00:00.213,8USB_EP_OUT ep=0x02 len=16 data=02910004
+06] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=64: 00 00 00 00 00 00 00 00[0m
+[00:00:00.218,902] [0m<inf> remapper: switch2_pro_handle_output_repUSB_EP_OUT ep=0x02 len=8 data=11910003
+ort: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:00.231,292] [0m<inf> remapper: switch_pro_handle_output_report: pro out_report desc=7 len=64: 00 00 00 0USB_EP_OUT ep=0x02 len=16 data=02910004
+0[0m
+[00:00:00.231,323] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=64: 00 00 00 00 00 00 00 00[0m
+[00:00:00.2USB_EP_OUT ep=0x02 len=28 data=0a910008
+31,811] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=1/1 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=6 host_drop=0 set=0 translUSB_EP_OUT ep=0x02 len=8 data=11910001
+ated=0 mapped=0/0 heartbeat=0/0 response=0/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:00.253,997] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=8: 07 91 00 01 00 00 00 00[0m
+[00:00:00.278,839] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=8: 16 91 00 01 00 00 00 00[0m
+[00:00:0USB_EP_OUT ep=0x02 len=12 data=0c910004
+0.339,019] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=12: 0b 91 00 07 00 04 00 00[0m
+[00:00:00.398,986] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=22: 15 91 00 01 00 0e 00 00[0m
+[00:00:00.429,016] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=12: 0c 91 00 02 00 04 00 00[0m
+USB_EP_OUT ep=0x02 len=12 data=0391000a
+[00:00:00.459,014] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 02 91 00 04 00 08 00 00[0m
+[00:00:00.489,074] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 02 91 00 04 00 08 00 00[0m
+[00:00:00.519,042] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 02 91 00 04 00 08 00 00USB_EP_OUT ep=0x02 len=8 data=10910001
+[0m
+[00:00:00.549,072] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 02 91 00 04 00 08 00 00[0m
+[00:00:00.579,040] [0m<iUSB_EP_OUT ep=0x02 len=8 data=0191000c
+nf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 02 91 00 04 00 08 00 00[0m
+[00:00:00.608,947] [0m<inf> remapper: switch2_pro_handle_output_repUSB_EP_OUT ep=0x02 len=8 data=18910001
+ort: sw2 host_cmd len=8: 11 91 00 03 00 00 00 00[0m
+[00:00:00.639,129] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 02 91 00 04 00 08 00 00[0m
+[00:00:00.669,128] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=28: 0a 91 00 08 00 14 00 00[0m
+[00:00:00.699,035] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=8: 11 91 00 01 00 00 00 00[0m
+[00:00:00.759,124] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=12: 0c 91 00 04 00 04 00 00[0m
+[00:00:00.819,122] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=12: 03 91 00 0a 00 04 00 00[0m
+[00:00:00.849,792] [0m<inf> remapper: switch_pro_handle_output_report: pro out_report desc=7 len=64: 02 50 81 01[0m
+[00:00:00.849,822] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=64: 02 50 81 01 10 1e 00 00[0m
+[00:00:00.853,790] [0m<inf> remapper: switch_pro_handle_output_report: pro out_report desc=7 len=64: 02 51 81 01[0m
+[00:00:00.853,820] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=64: 02 51 81 01 10 1e 00 00[0m
+[00:00:00.879,089] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=8: 10 91 00 01 00 00 00 00[0m
+[00:00:00.909,057] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=8: 01 91 00 0c 00 00 00 00[0m
+[00:00:00.939,117] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=8: 18 91 00 01 00 00 00 00[0m
+[00:00:01.001,678] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=92[0m
+[00:00:01.005,096] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=92 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:01.231,292] [0m<inf> remapper: scan_setup_filters: scanning for Switch 2 Pro Controller manufacturer data[0m
+[00:00:01.232,055] [0m<inf> remapper: scan_start: Scanning started.[0m
+[00:00:01.232,269] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=120/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:02.001,708] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=214[0m
+[00:00:02.007,110] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=214 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:02.232,818] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=242/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:03.001,678] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=322[0m
+[00:00:03.009,094] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=322 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:03.232,818] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=349/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:04.001,678] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=441[0m
+[00:00:04.015,106] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=442 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:04.232,879] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=469/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:05.001,708] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=565[0m
+[00:00:05.015,228] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=566 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:05.232,849] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=593/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:06.005,676] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=669[0m
+[00:00:06.021,118] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=670 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:06.232,849] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=696/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:07.009,674] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=789[0m
+[00:00:07.023,101] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=790 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:07.232,879] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=816/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:08.013,702] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=909[0m
+[00:00:08.027,099] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=910 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:08.232,849] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=935/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:09.013,702] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=1014[0m
+[00:00:09.029,113] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=1015 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:09.232,849] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=1040/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:10.017,700] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=1135[0m
+[00:00:10.031,097] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=1136 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:10.232,879] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=1161/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:11.021,697] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=1255[0m
+[00:00:11.035,125] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=1256 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:11.232,849] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=1280/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:12.021,697] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=1361[0m
+[00:00:12.037,109] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=1362 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:12.232,849] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=1386/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:13.025,726] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=1483[0m
+[00:00:13.039,123] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=1484 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:13.232,879] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=1508/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:14.029,693] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=1603[0m
+[00:00:14.043,121] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=1604 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:14.232,849] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=1627/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:15.029,724] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=1710[0m
+[00:00:15.045,104] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=1711 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:15.232,849] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=1734/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:16.033,721] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=1833[0m
+[00:00:16.047,119] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=1834 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:16.232,879] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=1857/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:17.037,689] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=1954[0m
+[00:00:17.051,147] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=1955 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:17.232,879] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=1977/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:18.037,719] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=2062[0m
+[00:00:18.053,161] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=2063 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:18.232,849] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=2085/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:19.041,717] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=2186[0m
+[00:00:19.055,114] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=2187 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:19.232,910] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=2209/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:20.045,715] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=2308[0m
+[00:00:20.058,135] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=2309 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:20.232,879] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=2330/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:21.049,713] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=2410[0m
+[00:00:21.065,124] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=2411 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:21.232,849] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=2431/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:22.053,771] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=2530[0m
+[00:00:22.067,138] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=2531 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:22.232,910] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=2551/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:23.053,741] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=2653[0m
+[00:00:23.067,138] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=2654 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:23.232,879] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=2674/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:24.057,708] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=2756[0m
+[00:00:24.073,120] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=2757 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:24.232,879] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=2776/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:25.061,706] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=2876[0m
+[00:00:25.075,134] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=2877 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:25.232,910] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=2896/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:26.061,737] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=3000[0m
+[00:00:26.075,134] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=3001 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:26.232,879] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=3020/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:27.065,734] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=3104[0m
+[00:00:27.081,146] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=3105 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:27.232,879] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=3123/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:28.069,702] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=3224[0m
+[00:00:28.083,129] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=3225 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:28.232,910] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=3243/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:29.073,791] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=3344[0m
+[00:00:29.087,127] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=3345 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:29.232,879] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=3363/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:30.073,730] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=3449[0m
+[00:00:30.089,141] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=3450 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:30.232,879] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=3467/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:31.077,728] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=3570[0m
+[00:00:31.091,156] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=3571 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:31.232,910] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=3588/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:32.081,726] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=3690[0m
+[00:00:32.095,153] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=3691 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:32.232,879] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=3708/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:33.081,756] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=3796[0m
+[00:00:33.097,137] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=3797 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:33.232,879] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=3813/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:34.085,754] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=3918[0m
+[00:00:34.099,151] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=3919 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:34.232,910] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=3935/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:35.089,752] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=4038[0m
+[00:00:35.103,149] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=4039 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:35.232,879] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=4055/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:36.089,721] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=4145[0m
+[00:00:36.105,163] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=4146 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:36.232,879] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=4161/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:37.093,750] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=4268[0m
+[00:00:37.107,147] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=4269 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:37.232,910] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=4284/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:38.097,747] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=4389[0m
+[00:00:38.111,145] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=4390 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:38.232,910] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=4405/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:39.097,778] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=4497[0m
+[00:00:39.113,159] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=4498 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:39.232,879] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=4512/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:40.101,745] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=4621[0m
+[00:00:40.115,173] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=4622 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:40.232,940] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=4636/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:41.105,743] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=4743[0m
+[00:00:41.119,171] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=4744 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:41.232,910] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=4758/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:42.109,741] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=4845[0m
+[00:00:42.125,152] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=4846 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:42.232,879] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=4859/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:43.113,830] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=4965[0m
+[00:00:43.127,166] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=4966 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:43.232,940] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=4979/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:44.113,769] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=5088[0m
+[00:00:44.127,166] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=5089 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:44.232,910] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=5102/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:45.117,736] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=5191[0m
+[00:00:45.133,178] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=5192 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:45.232,910] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=5204/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:46.121,734] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=5311[0m
+[00:00:46.135,162] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=5312 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:46.232,910] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=5324/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:47.121,795] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=5435[0m
+[00:00:47.135,162] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=5436 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:47.232,910] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=5448/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:48.125,762] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=5539[0m
+[00:00:48.141,174] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=5540 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:48.232,910] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=5551/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:49.129,760] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=5659[0m
+[00:00:49.143,157] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=5660 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:49.232,879] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=5671/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:50.133,850] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=5779[0m
+[00:00:50.147,064] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=5780 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:50.232,910] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=5790/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:51.137,756] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=5880[0m
+[00:00:51.151,062] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=5881 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:51.232,910] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=5891/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:52.137,756] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=6001[0m
+[00:00:52.151,062] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=6002 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:52.232,910] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=6012/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:53.141,754] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=6121[0m
+[00:00:53.155,181] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=6122 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:53.232,910] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=6131/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:54.141,784] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=6227[0m
+[00:00:54.157,073] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=6228 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:54.232,910] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=6237/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:55.145,751] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=6349[0m
+[00:00:55.159,179] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=6350 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:55.232,971] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=6359/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:56.149,780] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=6469[0m
+[00:00:56.163,177] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=6470 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:56.232,940] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=6478/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:57.149,810] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=6576[0m
+[00:00:57.165,069] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=6577 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:57.232,910] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=6585/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:58.153,778] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=6699[0m
+[00:00:58.167,175] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=6700 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:58.232,940] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=6708/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:59.157,775] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=6820[0m
+[00:00:59.171,173] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=6821 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:59.232,910] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=6828/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:01:00.157,775] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=6928[0m
+[00:01:00.173,065] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=6929 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:01:00.232,910] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=6936/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:01:01.161,773] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=7052[0m
+[00:01:01.175,079] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=7053 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:01:01.232,971] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=7060/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:01:02.165,802] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=7174[0m
+[00:01:02.179,077] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=7175 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:01:02.232,940] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=7181/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:01:03.169,769] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=7276[0m
+[00:01:03.185,180] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=7277 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:01:03.232,910] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=7282/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:01:04.173,889] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=7396[0m
+[00:01:04.187,072] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=7397 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:01:04.232,940] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=7402/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:01:05.173,797] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=7519[0m
+[00:01:05.187,072] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=7520 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:01:05.232,940] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=7525/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:01:06.177,764] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=7622[0m
+[00:01:06.193,084] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=7623 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:01:06.232,940] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=7627/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:01:07.181,793] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=7742[0m
+[00:01:07.195,068] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=7743 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:01:07.232,940] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=7747/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:01:08.181,793] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=7866[0m
+[00:01:08.195,068] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=7867 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:01:08.232,940] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=7871/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:01:09.185,791] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=7970[0m
+[00:01:09.201,080] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=7971 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:01:09.233,215] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=7974/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:01:10.189,788] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=8090[0m
+[00:01:10.203,094] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=8091 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:01:10.232,940] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=8094/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:01:11.193,878] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=8210[0m
+[00:01:11.207,061] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=8211 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:01:11.232,940] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=8214/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:01:12.193,786] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=8315[0m
+[00:01:12.209,075] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=8316 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:01:12.232,940] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=8318/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:01:13.197,784] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=8436[0m
+[00:01:13.211,090] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=8437 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:01:13.232,940] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=8439/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:01:14.201,812] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=8556[0m
+[00:01:14.215,087] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=8557 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:01:14.232,940] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=8559/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:01:15.201,782] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=8662[0m
+[00:01:15.217,102] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=8663 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:01:15.232,940] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=8664/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:01:16.205,810] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=8784[0m
+[00:01:16.219,085] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=8785 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:01:16.232,971] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=8786/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:01:17.209,808] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=8904[0m
+[00:01:17.223,083] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=8905 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:01:17.232,940] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=8906/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:01:18.209,808] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=9011[0m
+[00:01:18.225,097] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=9012 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:01:18.232,940] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=9012/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:01:19.213,806] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=9134[0m
+[00:01:19.227,111] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=9135 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:01:19.232,940] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=9135/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:01:20.217,803] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=9255[0m
+[00:01:20.231,109] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=9256 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:01:20.232,971] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=9256/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:01:21.217,834] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=9363[0m
+[00:01:21.232,940] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=9363/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:01:21.233,154] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=9364 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:01:22.221,832] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=9487[0m
+[00:01:22.232,971] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=9487/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:01:22.235,076] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=9488 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:01:23.225,830] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=9609[0m
+[00:01:23.232,971] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=9609/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:01:23.239,105] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=9610 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:01:24.229,797] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=9711[0m
+[00:01:24.232,971] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=9710/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:01:24.245,117] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=9712 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:01:25.232,971] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=9830/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:01:25.233,886] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=9831[0m
+[00:01:25.248,107] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=9832 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:01:26.232,971] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=9953/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:01:26.233,825] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=9954[0m
+[00:01:26.255,096] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=9956 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:01:27.233,001] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/5 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=31 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=10056/0 response=23/0 response_drop=0 rumble=2/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:01:27.237,823] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=10058[0m
+[00:01:27.261,108] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=10060 fails=0 enabled=1 rep0=09 rep2=20[0m

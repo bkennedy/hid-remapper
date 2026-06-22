@@ -12,6 +12,7 @@
 #include <zephyr/bluetooth/hci.h>
 #include <zephyr/bluetooth/uuid.h>
 #include <zephyr/drivers/gpio.h>
+#include <zephyr/drivers/uart.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/settings/settings.h>
@@ -46,6 +47,44 @@ static struct bt_hogp hogps[CONFIG_BT_MAX_CONN];
 static K_SEM_DEFINE(usb_sem0, 1, 1);
 static K_SEM_DEFINE(usb_sem1, 1, 1);
 static K_SEM_DEFINE(switch2_vendor_in_sem, 1, 1);
+
+// Auth relay: Mac Python script reads "AUTH02:...\n" from serial, sends to real
+// SW2 Pro USB, writes "R02:...\n" back. Firmware busy-polls uart_poll_in up to
+// 2000ms while waiting. Only sub=0x02 is relayed; sub=0x04 is constant.
+
+// Read up to timeout_ms waiting for "R02:<32 hex chars>\n" from relay script.
+// Returns true and fills out[16] if received; false on timeout.
+static bool sw2_wait_relay_response(uint8_t out[16], uint32_t timeout_ms) {
+    const struct device *uart = DEVICE_DT_GET(DT_CHOSEN(zephyr_console));
+    uint8_t buf[68];
+    int pos = 0;
+    int64_t deadline = k_uptime_get() + timeout_ms;
+    while (k_uptime_get() < deadline) {
+        uint8_t c;
+        if (uart_poll_in(uart, &c) == 0) {
+            buf[pos++] = c;
+            if (c == '\n') {
+                if (pos >= 36 && buf[0]=='R' && buf[1]=='0' && buf[2]=='2' && buf[3]==':') {
+                    // Parse 16 hex bytes
+                    bool ok = true;
+                    for (int i = 0; i < 16 && ok; i++) {
+                        char h[3] = { (char)buf[4+i*2], (char)buf[5+i*2], '\0' };
+                        char *end;
+                        long val = strtol(h, &end, 16);
+                        if (end == h) { ok = false; break; }
+                        out[i] = (uint8_t)val;
+                    }
+                    if (ok) return true;
+                }
+                pos = 0;
+            }
+            if (pos >= (int)sizeof(buf)) pos = 0;
+        } else {
+            k_busy_wait(500);  // 0.5ms
+        }
+    }
+    return false;
+}
 
 static struct k_mutex mutexes[(uint8_t) MutexId::N];
 
@@ -92,7 +131,7 @@ K_MSGQ_DEFINE(descriptor_q, sizeof(struct descriptor_type), 2, 4);
 K_MSGQ_DEFINE(hogp_ready_q, sizeof(struct hogp_ready_type), CONFIG_BT_MAX_CONN, 4);
 K_MSGQ_DEFINE(disconnected_q, sizeof(struct disconnected_type), CONFIG_BT_MAX_CONN, 4);
 K_MSGQ_DEFINE(set_report_q, sizeof(struct set_report_type), 8, 4);
-K_MSGQ_DEFINE(switch_pro_response_q, 64, 8, 4);
+K_MSGQ_DEFINE(switch_pro_response_q, 65, 16, 4);  // byte[0]=len, bytes[1..64]=data
 ATOMIC_DEFINE(tick_pending, 1);
 
 enum class ConnKind : uint8_t {
@@ -475,7 +514,16 @@ static void switch_pro_reset_input() {
         switch_pro_current_input[9] = 0x00;
         switch_pro_current_input[10] = 0x08;
         switch_pro_current_input[11] = 0x80;
-        switch_pro_current_input[12] = 0x38;
+        switch_pro_current_input[12] = 0x30;  // transitions to 0x38 after cmd=0x0c:0x04
+        // Placeholder IMU data (bytes 14-47); replace with live BLE values later
+        static const uint8_t sw2_imu_placeholder[34] = {
+            0x00, 0x1e, 0x87, 0x44, 0x00, 0x0c, 0x00, 0xfc,
+            0x25, 0x01, 0x02, 0xef, 0xa2, 0xfe, 0x00, 0x6a,
+            0xd5, 0x7f, 0x54, 0x59, 0x9e, 0x02, 0x78, 0x69,
+            0x25, 0xf8, 0x30, 0xb7, 0xd0, 0x0d, 0x71, 0x00,
+            0x00, 0x00,
+        };
+        memcpy(switch_pro_current_input + 14, sw2_imu_placeholder, sizeof(sw2_imu_placeholder));
         return;
     }
     switch_pro_current_input[0] = 0x30;
@@ -773,11 +821,10 @@ static void switch_pro_translate_report(const uint8_t* report_with_id, uint8_t l
 }
 
 static void switch_pro_queue_response(const uint8_t* response, size_t len) {
-    uint8_t buf[64] = {};
-    if (len > sizeof(buf)) {
-        len = sizeof(buf);
-    }
-    memcpy(buf, response, len);
+    uint8_t buf[65] = {};  // byte[0]=actual length, bytes[1..64]=data
+    if (len > 64) len = 64;
+    buf[0] = (uint8_t)len;
+    memcpy(buf + 1, response, len);
     if (is_switch2_pro_mode()) {
         switch2_flight_record(Switch2FlightEvent::QUEUE_RESPONSE, response[0], response[1], response[2], response[3], response, (uint8_t) len);
     }
@@ -819,14 +866,14 @@ static void switch2_pro_command_header(uint8_t* response, uint8_t cmd, uint8_t s
     response[1] = 0x01;
     response[2] = seq;
     response[3] = sub;
-    response[4] = 0x10;
-    response[5] = 0x78;
+    response[4] = 0x00;
+    response[5] = 0xf8;
     response[6] = 0x00;
     response[7] = 0x00;
 }
 
 static void switch2_pro_queue_command_header(uint8_t cmd, uint8_t seq, uint8_t sub) {
-    uint8_t response[64] = {};
+    uint8_t response[8] = {};
     switch2_pro_command_header(response, cmd, seq, sub);
     switch_pro_queue_response(response, sizeof(response));
 }
@@ -838,32 +885,51 @@ static void switch2_pro_encode_stick_calibration(uint8_t* out) {
 }
 
 static void switch2_pro_fill_flash_block(uint32_t address, uint8_t* block, size_t len) {
-    memset(block, 0, len);
+    memset(block, 0xff, len);  // erased flash = 0xff
     if (address == 0x00013000 && len >= 18) {
+        block[0] = 0x01;
         memcpy(block + 2, "HR-SW2PRO-00", 12);
-    } else if ((address == 0x00013080 || address == 0x000130c0) && len >= 0x31) {
+    } else if ((address == 0x00013080 || address == 0x000130c0) && len >= 0x30) {
+        block[0] = 0x01;
         switch2_pro_encode_stick_calibration(block + 0x28);
     }
 }
 
 static void switch2_pro_handle_flash_command(uint8_t seq, uint8_t sub, const uint8_t* report, uint8_t len) {
-    uint8_t response[64] = {};
-    switch2_pro_command_header(response, 0x02, seq, sub);
-
-    if (sub == 0x01 && len >= 16) {
+    if ((sub == 0x01 || sub == 0x04) && len >= 16) {
+        uint8_t read_len = report[8];
         uint32_t address = (uint32_t) report[12] |
             ((uint32_t) report[13] << 8) |
             ((uint32_t) report[14] << 16) |
             ((uint32_t) report[15] << 24);
-        response[8] = 0x40;
+
+        uint8_t flash_data[64] = {};
+        switch2_pro_fill_flash_block(address, flash_data, read_len <= 64 ? read_len : 64);
+
+        uint8_t response[64] = {};
+        switch2_pro_command_header(response, 0x02, seq, sub);
+        response[8] = read_len;
         response[12] = report[12];
         response[13] = report[13];
         response[14] = report[14];
         response[15] = report[15];
-        switch2_pro_fill_flash_block(address, response + 16, sizeof(response) - 16);
-    }
 
-    switch_pro_queue_response(response, sizeof(response));
+        // First packet: header(8) + meta(8) + up to 48 bytes of data = up to 64 bytes
+        uint8_t data_in_first = read_len <= 48 ? read_len : 48;
+        memcpy(response + 16, flash_data, data_in_first);
+        switch_pro_queue_response(response, 16 + data_in_first);
+
+        // Second packet if data > 48 bytes (64-byte reads need a 16-byte tail packet)
+        if (read_len > 48) {
+            uint8_t tail[16] = {};
+            memcpy(tail, flash_data + 48, read_len - 48);
+            switch_pro_queue_response(tail, read_len - 48);
+        }
+    } else {
+        uint8_t response[8] = {};
+        switch2_pro_command_header(response, 0x02, seq, sub);
+        switch_pro_queue_response(response, sizeof(response));
+    }
 }
 
 static uint8_t switch2_pro_feature_mask = 0;
@@ -880,13 +946,15 @@ static void switch2_pro_feature_info(uint8_t flags, uint8_t* out) {
 }
 
 static void switch2_pro_handle_feature_command(uint8_t seq, uint8_t sub, const uint8_t* report, uint8_t len) {
-    uint8_t response[64] = {};
+    uint8_t response[20] = {};  // 8-byte header + up to 12 bytes data
     uint8_t flags = len >= 9 ? report[8] : 0;
     switch2_pro_command_header(response, 0x0c, seq, sub);
+    uint8_t resp_len = 12;  // default: header + 4 zeroes
 
     switch (sub) {
         case 0x01:
             switch2_pro_feature_info(flags, response + 12);
+            resp_len = 20;  // header + 4 + 8 feature bytes
             break;
         case 0x02:
             switch2_pro_feature_mask = flags;
@@ -908,15 +976,23 @@ static void switch2_pro_handle_feature_command(uint8_t seq, uint8_t sub, const u
     if (switch2_pro_feature_flags & 0x20) {
         switch_pro_current_input[12] = 0x38;
     }
-    switch_pro_queue_response(response, sizeof(response));
+    switch_pro_queue_response(response, resp_len);
 }
+
+// Proactive init packets the real controller sends after responding to first 0x0d.
+// Captured from real SW2 Pro (switch2-usb-re/captures/20260616-113304.log):
+//   07 01 00 01 00 f8 00 00 00
+//   16 01 00 01 00 f8 00 00 [24 bytes of io/mem data]
+//   0b 01 00 07 00 f8 00 00
+//   15 01 00 01 00 f8 00 00 01 04 01 [6-byte BT MAC]
+// Without these the console stays in a 0x0d retry loop and never shows the controller.
 
 static void switch2_pro_handle_usb_command(uint8_t seq, uint8_t sub, const uint8_t* report, uint8_t len) {
     switch (sub) {
         case 0x03: {
             switch_pro_input_enabled = len >= 9 && report[8] != 0;
             switch2_flight_record(Switch2FlightEvent::INPUT_ENABLE, sub, switch_pro_input_enabled, len >= 9 ? report[8] : 0, 0, report, len);
-            uint8_t response[64] = {};
+            uint8_t response[9] = {};
             switch2_pro_command_header(response, 0x03, seq, sub);
             response[8] = 0x01;
             switch_pro_queue_response(response, sizeof(response));
@@ -925,7 +1001,7 @@ static void switch2_pro_handle_usb_command(uint8_t seq, uint8_t sub, const uint8
         case 0x0d: {
             switch_pro_input_enabled = true;
             switch2_flight_record(Switch2FlightEvent::INPUT_ENABLE, sub, switch_pro_input_enabled, len >= 9 ? report[8] : 0, 0, report, len);
-            uint8_t response[64] = {};
+            uint8_t response[12] = {};
             switch2_pro_command_header(response, 0x03, seq, sub);
             response[8] = 0x01;
             switch_pro_queue_response(response, sizeof(response));
@@ -998,12 +1074,172 @@ static bool switch2_pro_handle_output_report(const uint8_t* report, uint8_t len)
         case 0x03:
             switch2_pro_handle_usb_command(seq, sub, report, len);
             break;
+        case 0x07: {
+            // Init step 1: console asks for basic ack; respond with 9-byte header
+            uint8_t response[9] = {};
+            switch2_pro_command_header(response, cmd, seq, sub);
+            switch_pro_queue_response(response, sizeof(response));
+            break;
+        }
         case 0x09:
             switch2_pro_queue_command_header(0x09, seq, sub);
+            break;
+        case 0x0b:
+            // Init step 3: 8-byte header-only ack
+            switch2_pro_queue_command_header(cmd, seq, sub);
             break;
         case 0x0c:
             switch2_pro_handle_feature_command(seq, sub, report, len);
             break;
+        case 0x15: {
+            // BT identity exchange.
+            // sub=0x01: report controller MAC so console can look it up.
+            // Use real controller MAC so the console can find its BLE bond and skip crypto.
+            // Fill from BLE-connected controller later.
+            if (sub == 0x01) {
+                // Real controller MAC (little-endian: 3c:a9:ab:69:17:3d) from GreatFET capture
+                static const uint8_t sw2_test_mac[6] = { 0x3d, 0x17, 0x69, 0xab, 0xa9, 0x3c };
+                uint8_t response[17] = {};
+                switch2_pro_command_header(response, cmd, seq, sub);
+                response[8] = 0x01;
+                response[9] = 0x04;
+                response[10] = 0x01;
+                memcpy(response + 11, sw2_test_mac, 6);
+                switch_pro_queue_response(response, sizeof(response));
+                // Log console-MAC payload for relay script to forward to real controller
+                printk("USB_INIT bt_mac_resp sub=0x01 mac=%02x:%02x:%02x:%02x:%02x:%02x\n",
+                    sw2_test_mac[5], sw2_test_mac[4], sw2_test_mac[3],
+                    sw2_test_mac[2], sw2_test_mac[1], sw2_test_mac[0]);
+                // AUTH01: <full 22-byte packet hex> for relay to real controller
+                printk("AUTH01:");
+                for (int i = 0; i < (int)len && i < 22; i++) {
+                    printk("%02x", report[i]);
+                }
+                printk("\n");
+            } else if (sub == 0x02 || sub == 0x04) {
+                // Crypto challenge-response: console sends 17B challenge, we respond 25B.
+                // sub=0x04: constant identity proof (never changes for this controller).
+                // sub=0x02: real challenge-response; relay to real SW2 Pro via Python script.
+                static const uint8_t auth_reply_04[17] = {
+                    0x01, 0x5c, 0xf6, 0xee, 0x79, 0x2c, 0xdf, 0x05,
+                    0xe1, 0xba, 0x2b, 0x63, 0x25, 0xc4, 0x1a, 0x5f, 0x10,
+                };
+                uint8_t response[25] = {};
+                switch2_pro_command_header(response, cmd, seq, sub);
+                if (sub == 0x04) {
+                    memcpy(response + 8, auth_reply_04, 17);
+                } else {
+                    // sub=0x02: log challenge for Python relay, wait up to 2s for R02: response
+                    const uint8_t *chal = &report[9];  // 16 challenge bytes start at report[9]
+                    printk("AUTH02:%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x\n",
+                        chal[0],chal[1],chal[2],chal[3],chal[4],chal[5],chal[6],chal[7],
+                        chal[8],chal[9],chal[10],chal[11],chal[12],chal[13],chal[14],chal[15]);
+                    uint8_t relay[16] = {};
+                    if (sw2_wait_relay_response(relay, 2000)) {
+                        response[8] = 0x01;
+                        memcpy(response + 9, relay, 16);
+                        printk("AUTH02_RELAY: got response\n");
+                    } else {
+                        // Timeout: best-effort with known constant (will fail crypto)
+                        response[8] = 0x01;
+                        printk("AUTH02_RELAY: timeout, using fallback\n");
+                    }
+                }
+                switch_pro_queue_response(response, sizeof(response));
+            } else if (sub == 0x03) {
+                // Auth finalize: 9-byte ack with 0x01 = success
+                uint8_t response[9] = {};
+                switch2_pro_command_header(response, cmd, seq, sub);
+                response[8] = 0x01;
+                switch_pro_queue_response(response, sizeof(response));
+            } else {
+                uint8_t response[9] = {};
+                switch2_pro_command_header(response, cmd, seq, sub);
+                response[8] = 0x01;
+                switch_pro_queue_response(response, sizeof(response));
+            }
+            break;
+        }
+        case 0x11: {
+            // IMU/sensor calibration: sub=0x03 needs 37 bytes, sub=0x01 needs 12 bytes
+            if (sub == 0x03) {
+                uint8_t response[37] = {};
+                switch2_pro_command_header(response, cmd, seq, sub);
+                response[8] = 0x01;  // validity marker
+                response[9] = 0xc0;  // from real capture: 0x03c0 sample-rate param
+                response[10] = 0x03;
+                // bytes[11..12] = 0x00 0x00 (zero padding)
+                // bytes[13..36] = 6 IEEE-754 float32 IMU scale factors (24 bytes)
+                // Use values from real capture to match console expectations
+                static const uint8_t imu_cal[24] = {
+                    0xe7, 0xd0, 0x1c, 0x3b,  // ~0.00244 accel sensitivity
+                    0x79, 0x22, 0xa0, 0x3a,  // ~0.00122
+                    0x0a, 0xe8, 0x9c, 0x42,  // ~78.45 gyro scale
+                    0x58, 0xa0, 0x0b, 0x42,  // ~34.91
+                    0x0a, 0xe8, 0x9c, 0x41,  // ~19.61
+                    0x58, 0xa0, 0x0b, 0x41,  // ~8.73
+                };
+                memcpy(response + 13, imu_cal, sizeof(imu_cal));
+                switch_pro_queue_response(response, sizeof(response));
+            } else if (sub == 0x01) {
+                uint8_t response[12] = {};
+                switch2_pro_command_header(response, cmd, seq, sub);
+                response[8] = 0x03;
+                switch_pro_queue_response(response, sizeof(response));
+            } else {
+                switch2_pro_queue_command_header(cmd, seq, sub);
+            }
+            break;
+        }
+        case 0x01: {
+            // Firmware version query: sub=0x0c → 12 bytes
+            uint8_t response[12] = {};
+            switch2_pro_command_header(response, cmd, seq, sub);
+            if (sub == 0x0c) {
+                response[8] = 0x61; response[9] = 0x12; response[10] = 0x50; response[11] = 0x10;
+            }
+            switch_pro_queue_response(response, sizeof(response));
+            break;
+        }
+        case 0x10: {
+            // USB/HID config query: sub=0x01 → 20 bytes
+            uint8_t response[20] = {};
+            switch2_pro_command_header(response, cmd, seq, sub);
+            if (sub == 0x01) {
+                static const uint8_t d10[12] = {
+                    0x02, 0x01, 0x04, 0x02, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x02, 0x03, 0x00
+                };
+                memcpy(response + 8, d10, sizeof(d10));
+            }
+            switch_pro_queue_response(response, sizeof(response));
+            break;
+        }
+        case 0x18: {
+            // Power/audio config query: sub=0x01 → 16 bytes
+            uint8_t response[16] = {};
+            switch2_pro_command_header(response, cmd, seq, sub);
+            if (sub == 0x01) {
+                static const uint8_t d18[8] = {
+                    0x00, 0x00, 0x40, 0xf0, 0x00, 0x00, 0x60, 0x00
+                };
+                memcpy(response + 8, d18, sizeof(d18));
+            }
+            switch_pro_queue_response(response, sizeof(response));
+            break;
+        }
+        case 0x16: {
+            // Init step 2: respond with 32-byte packet (memory map / address info)
+            static const uint8_t p16_data[24] = {
+                0x49, 0x4f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                0x10, 0x4d, 0x00, 0x00, 0xfe, 0x4c, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            };
+            uint8_t response[32] = {};
+            switch2_pro_command_header(response, cmd, seq, sub);
+            memcpy(response + 8, p16_data, sizeof(p16_data));
+            switch_pro_queue_response(response, sizeof(response));
+            break;
+        }
         default:
             switch2_pro_queue_command_header(cmd, seq, sub);
             break;
@@ -1466,21 +1702,23 @@ static bool switch_pro_handle_output_report(const uint8_t* report, uint8_t len) 
 }
 
 static bool switch_pro_send_response() {
-    uint8_t response[64];
-    if (!is_switch_pro_mode() || k_msgq_get(&switch_pro_response_q, response, K_NO_WAIT)) {
+    uint8_t slot[65];  // byte[0]=len, bytes[1..64]=data
+    if (!is_switch_pro_mode() || k_msgq_get(&switch_pro_response_q, slot, K_NO_WAIT)) {
         return false;
     }
+    uint8_t len = slot[0];
+    uint8_t* response = slot + 1;
     bool sent;
 #if CONFIG_USB_HID_DEVICE_COUNT == 1
     if (is_switch2_pro_mode()) {
-        sent = CHK(usb_write(SWITCH2_VENDOR_IN_EP, response, sizeof(response), NULL));
+        sent = CHK(usb_write(SWITCH2_VENDOR_IN_EP, response, len, NULL));
     } else
 #endif
     {
-        sent = CHK(hid_int_ep_write(hid_dev0, response, sizeof(response), NULL));
+        sent = CHK(hid_int_ep_write(hid_dev0, response, 64, NULL));
     }
     if (is_switch2_pro_mode()) {
-        switch2_flight_record(Switch2FlightEvent::SEND_RESPONSE, response[0], sent, response[2], response[3], response, sizeof(response));
+        switch2_flight_record(Switch2FlightEvent::SEND_RESPONSE, response[0], sent, response[2], response[3], response, len);
     }
     if (sent) {
         switch_pro_response_writes++;
@@ -2760,14 +2998,16 @@ static void switch2_vendor_interface_config(struct usb_desc_header* head, uint8_
 // [34..36]=grip-R color, [37..63]=0xff padding.
 static const uint8_t sw2_vendor_req03_resp[64] = {
     0x01, 0x00,
-    'H','I','D','0','0','0','0','0','0','0','0','0','0','0', 0x00, 0x00,  // serial
+    // Real controller serial from GreatFET capture — fill from BLE-connected controller later
+    'H','E','W','7','0','0','0','6','1','6','9','7','8','0', 0x00, 0x00,
     0x7e, 0x05,  // VID = 0x057e (Nintendo)
     0x69, 0x20,  // PID = 0x2069 (Switch 2 Pro)
     0x01, 0x06,  // device version
     0x01,        // unknown
-    0x32, 0x32, 0x32,  // grip L color
-    0x32, 0x32, 0x32,  // body color
-    0x32, 0x32, 0x32,  // button color
+    // Real controller colors from capture
+    0x23, 0x23, 0x23,  // grip L color
+    0xa0, 0xa0, 0xa0,  // body color
+    0xe6, 0xe6, 0xe6,  // button color
     0x32, 0x32, 0x32,  // grip R color
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
@@ -2779,7 +3019,8 @@ static const uint8_t sw2_vendor_req03_resp[64] = {
 static const uint8_t sw2_vendor_req02_resp[16] = {
     0x02, 0x01, 0x04, 0x00, 0x00, 0x00, 0x0c, 0x00,
     0x02, 0x03,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  // placeholder MAC
+    // Real controller MAC in little-endian: 3c:a9:ab:69:17:3d — fill from BLE later
+    0x3d, 0x17, 0x69, 0xab, 0xa9, 0x3c,
 };
 
 static int switch2_vendor_handler(struct usb_setup_packet* setup, int32_t* len, uint8_t** data) {

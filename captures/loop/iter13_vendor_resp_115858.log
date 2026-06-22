@@ -1,0 +1,73 @@
+*** Booting Zephyr OS build c0689b16ff12 ***
+[usbdesc 000: 12 01 00 02 ef 02 01 40 7e 05 69 20 01 02 01 02
+00:usbdesc 010: 03 01 09 02 ba 00 05 01 00 a0 32 08 0b 00 01 03
+usbdesc 020: 00 00 00 09 04 00 00 02 03 00 00 00 09 21 10 01
+usbdesc 030: 00 01 22 73 00 07 05 81 03 40 00 04 07 05 01 03
+usbdesc 040: 40 00 04 08 0b 01 01 ff 00 00 00 09 04 01 00 02
+usbdesc 050: ff 00 00 00 07 05 02 02 40 00 00 07 05 82 02 40
+00:00.004,272] usbdesc 060: 00 00 08 0b 02 03 01 01 00 00 09 04 02 00 00 01
+[0m<inf> remapper: main: HID Remapper Bluetooth[0m
+[0usbdesc 070: 01 00 00 0a 24 01 00 01 47 00 02 03 04 0c 24 02
+0:00:00.011,779] [0m<inf> fs_nvs: nvs_mount: 8 Sectors ousbdesc 080: 01 01 01 00 02 03 00 00 00 0a 24 06 02 01 01 03
+f 4096 bytes[0m
+[00:00:00.011,810] [0m<inf> fs_nvs: usbdesc 090: 00 00 00 09 24 03 03 02 03 00 02 00 0c 24 02 04
+nvs_mount: alloc wra: 0, fe8[0m
+[00:00:00.011,810] [usbdesc 0a0: 01 02 00 01 00 00 00 00 09 24 06 05 04 01 03 00
+0m<inf> fs_nvs: nvs_mount: data wra: 0, 0[0m
+usbdesc 0b0: 00 09 24 03 06 01 01 00 05 00 09 04 03 00 00 01
+[00:00:00.012,023] [0m<inf> sdc_hci_driver: hci_driusbdesc 0c0: 02 00 00 09 04 04 00 00 01 02 00 00 04 03 09 04
+ver_open: SoftDevice Controller build revision: 
+        usbdesc 0d0: 12 03 4e 00 69 00 6e 00 74 00 65 00 6e 00 64 00
+                                 6d 90 41 2a 38 e8 ad 17 usbdesc 0e0: 6f 00 30 03 53 00 77 00 69 00 74 00 63 00 68 00
+ 29 a5 03 38 39 27 d7 85 |m.A*8... )..89'..
+             usbdesc 0f0: 20 00 32 00 20 00 50 00 72 00 6f 00 20 00 43 00
+                            1f 85 d8 e1                usbdesc 100: 6f 00 6e 00 74 00 72 00 6f 00 6c 00 6c 00 65 00
+                      |....             [0m
+[00usbdesc 110: 72 00 22 03 31 00 44 00 33 00 46USB_SETUP bm=0xc0 req=0x03 status=identity_ACK
+ 00 32USB_SETUP bm=0xc0 req=0x02 status=proto_ACK
+ 00USB_SETUP bm=0x40 req=0x04 val=0x0276 idx=0x0000 len=0x0000 status=vendor_STALL
+ 30 00USB_SETUP bm=0x40 req=0x04 val=0x0276 idx=0x0000 len=0x0000 status=vendor_STALL
+
+:00USB_SETUP bm=0x40 req=0x04 val=0x0276 idx=0x0000 len=0x0000 status=vendor_STALL
+USB_SETUP bm=0x40 req=0x04 val=0x0276 idx=0x0000 len=0x0000 status=vendor_STALL
+:00.014,465] [0m<inf> bt_hci_core: hci_vs_init: HW Platform: Nordic Semiconductor (0x0002)[0m
+[00:00:00.014,495] [0m<inf> bt_hci_core: hci_vs_init: HW Variant: nRF52x (0x0002)[0m
+[00:00:00.014,526] [0m<inf> bt_hci_core: hci_vs_init: Firmware: Standard Bluetooth controller (0x00) Version 109.16784 Build 2917677098[0m
+[00:00:00.015,045] [0m<inf> bt_hci_core: bt_init: No ID address. App must call settings_load()[0m
+[00:00:00.015,563] [0m<inf> bt_hci_core: bt_dev_show_info: Identity: C6:5F:36:95:D7:F9 (random)[0m
+[00:00:00.015,594] [0m<inf> bt_hci_core: bt_dev_show_info: HCI: version 5.3 (0x0c) revision 0x11fa, manufacturer 0x0059[0m
+[00:00:00.015,625] [0m<inf> bt_hci_core: bt_dev_show_info: LMP: version 5.3 (0x0c) subver 0x11fa[0m
+[00:00:00.015,655] [0m<inf> remapper: switch2_flight_dump_saved: switch2_flight dump count=0 next_seq=0 wrapped=0[0m
+[00:00:00.015,686] [0m<inf> remapper: main: Switch 2 console USB build: forcing Switch 2 Pro descriptor[0m
+[00:00:00.016,845] [0m<inf> usb_hid: hid_do_status_cb: Device connected[0m
+[00:00:00.019,958] [0m<inf> usb_hid: hid_do_status_cb: Device suspended[0m
+[00:00:00.121,368] [0m<inf> usb_hid: hid_do_status_cb: Device resumed[0m
+[00:00:00.121,398] [0m<inf> usb_hid: hid_do_status_cb: from suspend[0m
+[00:00:00.121,429] [0m<inf> usb_hid: hid_do_status_cb: Device reset detected[0m
+[00:00:00.196,136] [0m<inf> usb_hid: hid_do_status_cb: Device configured[0m
+[00:00:00.247,100] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=0 report_q=0/0 response_q=0/0 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=0 host_drop=0 set=0 translated=0 mapped=0/0 heartbeat=0/0 response=0/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:01.247,070] [0m<inf> remapper: scan_setup_filters: scanning for Switch 2 Pro Controller manufacturer data[0m
+[00:00:01.247,833] [0m<inf> remapper: scan_start: Scanning started.[0m
+[00:00:01.248,016] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=0 report_q=0/0 response_q=0/0 out_q=1 out_overflows=0 ble=0 ble_drop=0 host=0 host_drop=0 set=0 translated=0 mapped=0/0 heartbeat=1/0 response=0/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:02.247,406] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=0 report_q=0/0 response_q=0/0 out_q=1 out_overflows=0 ble=0 ble_drop=0 host=0 host_drop=0 set=0 translated=0 mapped=0/0 heartbeat=1/0 response=0/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:03.247,375] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=0 report_q=0/0 response_q=0/0 out_q=1 out_overflows=0 ble=0 ble_drop=0 host=0 host_drop=0 set=0 translated=0 mapped=0/0 heartbeat=1/0 response=0/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:04.247,406] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=0 report_q=0/0 response_q=0/0 out_q=1 out_overflows=0 ble=0 ble_drop=0 host=0 host_drop=0 set=0 translated=0 mapped=0/0 heartbeat=1/0 response=0/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:05.247,375] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=0 report_q=0/0 response_q=0/0 out_q=1 out_overflows=0 ble=0 ble_drop=0 host=0 host_drop=0 set=0 translated=0 mapped=0/0 heartbeat=1/0 response=0/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:06.247,375] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=0 report_q=0/0 response_q=0/0 out_q=1 out_overflows=0 ble=0 ble_drop=0 host=0 host_drop=0 set=0 translated=0 mapped=0/0 heartbeat=1/0 response=0/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:07.247,375] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=0 report_q=0/0 response_q=0/0 out_q=1 out_overflows=0 ble=0 ble_drop=0 host=0 host_drop=0 set=0 translated=0 mapped=0/0 heartbeat=1/0 response=0/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:08.247,375] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=0 report_q=0/0 response_q=0/0 out_q=1 out_overflows=0 ble=0 ble_drop=0 host=0 host_drop=0 set=0 translated=0 mapped=0/0 heartbeat=1/0 response=0/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:09.247,375] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=0 report_q=0/0 response_q=0/0 out_q=1 out_overflows=0 ble=0 ble_drop=0 host=0 host_drop=0 set=0 translated=0 mapped=0/0 heartbeat=1/0 response=0/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:10.247,406] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=0 report_q=0/0 response_q=0/0 out_q=1 out_overflows=0 ble=0 ble_drop=0 host=0 host_drop=0 set=0 translated=0 mapped=0/0 heartbeat=1/0 response=0/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:11.247,375] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=0 report_q=0/0 response_q=0/0 out_q=1 out_overflows=0 ble=0 ble_drop=0 host=0 host_drop=0 set=0 translated=0 mapped=0/0 heartbeat=1/0 response=0/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:12.247,436] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=0 report_q=0/0 response_q=0/0 out_q=1 out_overflows=0 ble=0 ble_drop=0 host=0 host_drop=0 set=0 translated=0 mapped=0/0 heartbeat=1/0 response=0/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:13.247,375] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=0 report_q=0/0 response_q=0/0 out_q=1 out_overflows=0 ble=0 ble_drop=0 host=0 host_drop=0 set=0 translated=0 mapped=0/0 heartbeat=1/0 response=0/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:14.247,375] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=0 report_q=0/0 response_q=0/0 out_q=1 out_overflows=0 ble=0 ble_drop=0 host=0 host_drop=0 set=0 translated=0 mapped=0/0 heartbeat=1/0 response=0/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:15.247,375] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=0 report_q=0/0 response_q=0/0 out_q=1 out_overflows=0 ble=0 ble_drop=0 host=0 host_drop=0 set=0 translated=0 mapped=0/0 heartbeat=1/0 response=0/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:16.247,406] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=0 report_q=0/0 response_q=0/0 out_q=1 out_overflows=0 ble=0 ble_drop=0 host=0 host_drop=0 set=0 translated=0 mapped=0/0 heartbeat=1/0 response=0/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:17.247,375] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=0 report_q=0/0 response_q=0/0 out_q=1 out_overflows=0 ble=0 ble_drop=0 host=0 host_drop=0 set=0 translated=0 mapped=0/0 heartbeat=1/0 response=0/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:18.247,497] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=0 report_q=0/0 response_q=0/0 out_q=1 out_overflows=0 ble=0 ble_drop=0 host=0 host_drop=0 set=0 translated=0 mapped=0/0 heartbeat=1/0 response=0/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:19.247,406] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=0 report_q=0/0 response_q=0/0 out_q=1 out_overflows=0 ble=0 ble_drop=0 host=0 host_drop=0 set=0 translated=0 mapped=0/0 heartbeat=1/0 response=0/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:20.247,406] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=0 report_q=0/0 response_q=0/0 out_q=1 out_overflows=0 ble=0 ble_drop=0 host=0 host_drop=0 set=0 translated=0 mapped=0/0 heartbeat=1/0 response=0/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:21.247,375] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=0 report_q=0/0 response_q=0/0 out_q=1 out_overflows=0 ble=0 ble_drop=0 host=0 host_drop=0 set=0 translated=0 mapped=0/0 heartbeat=1/0 response=0/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:22.247,406] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=0 report_q=0/0 response_q=0/0 out_q=1 out_overflows=0 ble=0 ble_drop=0 host=0 host_drop=0 set=0 translated=0 mapped=0/0 heartbeat=1/0 response=0/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:23.247,406] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=0 report_q=0/0 response_q=0/0 out_q=1 out_overflows=0 ble=0 ble_drop=0 host=0 host_drop=0 set=0 translated=0 mapped=0/0 heartbeat=1/0 response=0/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m

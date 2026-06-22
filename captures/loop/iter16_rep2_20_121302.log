@@ -1,0 +1,556 @@
+*** Booting Zephyr OS build c0689b16ff12 ***
+[usbdesc 000: 12 01 00 02 ef 02 01 40 7e 05 69 20 01 02 01 02
+00usbdesc 010: 03 01 09 02 ba 00 05 01 00 a0 32 08 0b 00 01 03
+usbdesc 020: 00 00 00 09 04 00 00 02 03 00 00 00 09 21 10 01
+usbdesc 030: 00 01 22 73 00 07 05 81 03 40 00 04 07 05 01 03
+usbdesc 040: 40 00 04 08 0b 01 01 ff 00 00 00 09 04 01 00 02
+usbdesc 050: ff 00 00 00 07 05 02 02 40 00 00 07 05 82 02 40
+:00:00.004,272]usbdesc 060: 00 00 08 0b 02 03 01 01 00 00 09 04 02 00 00 01
+ [0m<inf> remapper: main: HID Remapper Bluetooth[0m
+usbdesc 070: 01 00 00 0a 24 01 00 01 47 00 02 03 04 0c 24 02
+[00:00:00.011,993] [0m<inf> fs_nvs: nvs_mount: 8 Sectorsusbdesc 080: 01 01 01 00 02 03 00 00 00 0a 24 06 02 01 01 03
+ of 4096 bytes[0m
+[00:00:00.012,023] [0m<inf> fs_nvsusbdesc 090: 00 00 00 09 24 03 03 02 03 00 02 00 0c 24 02 04
+: nvs_mount: alloc wra: 0, fe8[0m
+[00:00:00.012,023] usbdesc 0a0: 01 02 00 01 00 00 00 00 09 24 06 05 04 01 03 00
+[0m<inf> fs_nvs: nvs_mount: data wra: 0, 0[0m
+usbdesc 0b0: 00 09 24 03 06 01 01 00 05 00 09 04 03 00 00 01
+[00:00:00.012,237] [0m<inf> sdc_hci_driver: hci_dusbdesc 0c0: 02 00 00 09 04 04 00 00 01 02 00 00 04 03 09 04
+river_open: SoftDevice Controller build revision: 
+     usbdesc 0d0: 12 03 4e 00 69 00 6e 00 74 00 65 00 6e 00 64 00
+                                    6d 90 41 2a 38 e8 ad 1usbdesc 0e0: 6f 00 30 03 53 00 77 00 69 00 74 00 63 00 68 00
+7  29 a5 03 38 39 27 d7 85 |m.A*8... )..89'..
+          usbdesc 0f0: 20 00 32 00 20 00 50 00 72 00 6f 00 20 00 43 00
+                               1f 85 d8 e1             usbdesc 100: 6f 00 6e 00 74 00 72 00 6f 00 6c 00 6c 00 65 00
+                         |....             [0m
+[usbdesc 110: 72 00 22 03 31 00 44 00 33 00 46 00 USB_SETUP bm=0xc0 req=0x03 status=identity_ACK
+32 00 USB_SETUP bm=0xc0 req=0x02 status=proto_ACK
+30 USB_SETUP bm=0x40 req=0x04 val=0x0276 status=set_ACK
+00
+00:00:00.014,678] [0m<inf> bt_hci_core: hci_vs_init: HWUSB_EP_OUT ep=0x02 len=16 data=0391000d
+ Platform: Nordic Semiconductor (0x0002)[0m
+[00:00:00.014,709] [0m<inf> bt_hci_core: hci_vs_init: HW Variant: nRF52x (0x0002)[0m
+[00:00:00.014,739] [0m<inf> bt_hci_core: hci_vs_init: Firmware: Standard Bluetooth controller (0x00) Version 109.16784 Build 2917677098[0m
+[00:00:00.015,258] [0m<inf> bt_hci_core: bt_init: No ID address. App must call settings_load()[0m
+[00:00:00.015,777] [0m<inf> bt_hci_core: bt_dev_show_info: Identity: C6:5USB_EP_OUT ep=0x02 len=16 data=0391000d
+F:36:95:D7:F9 (random)[0m
+[00:00:00.015,808] [0m<inf> bt_hci_core: bt_dev_show_info: HCI: version 5.3 (0x0c) revision 0x11fa, manufacturer 0x0059[0m
+[00:00:00.015,838] [0m<inf> bt_hci_core: bt_dev_show_info: LMP: version 5.3 (0x0c) subver 0x11fa[0m
+[00:00:00.015,899] [0m<inf> remapper: switch2_flight_dump_saved: switch2_flight dump count=0 next_seq=0 wrapped=0[0m
+[00:00:00.015,899] [0m<inf> remapper: main: Switch 2 console USB build: forcing Switch 2 Pro descriptor[0m
+[00:00:00.017,059] [0m<inf> usb_hid: hid_do_status_cb: Device connected[0m
+[00:00:00.020,172] [0m<inf> usb_hid: hid_do_status_cb: Device suspended[0m
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+[00:00:00.121,734] [0m<inf> usb_hid: hid_do_status_cb: Device resumed[0m
+[00:00:00.121,734] [0m<inf> usb_hid: hid_do_status_cb: from suspend[0m
+[00:00:00.121,795] [0m<inf> usb_hid: hid_do_status_cb: Device reset detected[0m
+[00:00:00.196,624] [0m<inf> usb_hid: hid_do_status_cb: Device configured[0m
+[00:00:00.215,820] [0m<inf> remapper: switch_pro_handle_output_report: pro out_report desc=7 len=64: 00 00 00 00[0m
+[00:00:00.215,850] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=64: 00 00 00 00 00 00 00 00[0m
+[00:00:00.228,485] [0m<inf> remapper: switch_pro_handle_output_report: pro out_report desc=7 len=64: 00 00 00 00[0m
+[00:00:00.228,515] [0m<inf> remapper: switch2_pro_haUSB_EP_OUT ep=0x02 len=16 data=0391000d
+ndle_output_report: sw2 host_cmd len=64: 00 00 00 00 00 00 00 00[0m
+[00:00:00.229,003] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=0 report_q=0/4 response_q=0/0 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=4 host_drop=0 set=0 translated=0 mapped=0/0 heartbeat=0/0 response=0/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:00.247,558] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:00.354,461] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:00.474,487] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+[00:00:00.594,482] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:00.714,569] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+[00:00:00.834,564] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:00.954,589] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:01.003,173] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=94 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:01.003,723] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=95[0m
+[00:00:01.074,676] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:01.194,641] [0m<inf> reUSB_EP_OUT ep=0x02 len=16 data=0391000d
+mapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:01.228,515] [0m<inf> remapper: scan_setup_filters: scanning for Switch 2 Pro Controller manufacturer data[0m
+[00:00:01.229,248] [0m<inf> remapper: scan_start: Scanning started.[0m
+[00:00:01.229,461] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/4 response_q=0/1 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=14 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=122/0 response=9/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:01.314,666] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:01.315,856] [0m<inf> usb_devUSB_EP_OUT ep=0x02 len=16 data=0391000d
+ice: usb_halt_endpoint_req: Clear halt ep 0x82[0m
+[00:00:01.315,887] [0m<inf> usb_hid: hid_do_status_cb: Unknown event[0m
+[00:00:01.434,692] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:01.554,687] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+[00:00:01.674,713] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:01.794,738] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:01.914,764] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:02.004,180] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=216 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:02.007,720] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=217[0m
+[00:00:02.034,759] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:02.154,815] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 0USB_EP_OUT ep=0x02 len=16 data=0391000d
+8 00 00[0m
+[00:00:02.229,888] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/4 responsUSB_EP_OUT ep=0x02 len=16 data=0391000d
+e_q=0/1 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=22 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=244/0 response=17/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:02.274,841] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:02.394,927] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:02.395,812] [0m<inf> usb_device: usb_halt_endpoint_req: Clear halt ep 0x82[0m
+[00:00:02.395,843] [0m<inf> usb_hid: hid_do_status_cb: Unknown event[0m
+[00:00:02.514,923] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:02.635,009] [0m<inf> USB_EP_OUT ep=0x02 len=16 data=0391000d
+remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:02.755,065] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+[00:00:02.875,030] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:02.995,056] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:03.006,195] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=324 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:03.007,720] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=325[0m
+[00:00:03.115,112] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:03.229,888] [0USB_EP_OUT ep=0x02 len=16 data=0391000d
+m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/4 response_q=0/1 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=30 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=351/0 response=25/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:03.235,168] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:03.355,194] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:03.475,311] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:03.476,562] [0m<inf> usb_device: usb_halt_endpoint_req: Clear halt ep 0x82[0m
+[00:00:03.476,USB_EP_OUT ep=0x02 len=16 data=0391000d
+593] [0m<inf> usb_hid: hid_do_status_cb: Unknown event[0m
+[00:00:03.595,336] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:03.715,301] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+[00:00:03.835,327] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:03.955,413] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:04.028,472] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=443 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:04.031,738] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=444[0m
+[00:00:04.075,408] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:04.195,404] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+[00:00:04.229,888] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/4 response_q=0/1 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=39 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=468/0 response=34/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:04.315,612] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:04.435,668] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:04.555,755] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:04.556,579] [0m<inf> usb_device: usb_halt_endpoint_req: Clear halt ep 0x82[0m
+[00:00:04.556,610] [0m<inf> usb_hid: hid_do_status_cb: Unknown event[0m
+[00:00:04.675,842] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+[00:00:04.795,806] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:04.915,893] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:05.030,151] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=547 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:05.031,738] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=548[0m
+[00:00:05.035,888] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:05.155,944] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+[00:00:05.229,888] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/4 response_q=0/1 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=47 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=571/0 response=42/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:05.276,062] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:05.395,996] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:05.515,991] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:05.636,047] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16:USB_EP_OUT ep=0x02 len=16 data=0391000d
+ 03 91 00 0d 00 08 00 00[0m
+[00:00:05.636,932] [0m<inf> usb_device: usb_halt_endpoint_req: Clear halt ep 0x82[0m
+[00:00:05.636,962] [0m<inf> usb_hid: hid_do_status_cb: Unknown event[0m
+[00:00:05.756,072] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:05.876,098] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+[00:00:05.996,124] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:06.032,135] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=667 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:06.035,705] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=668[0m
+[00:00:06.116,119] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:06.229,858] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/4 response_q=0/1 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=55 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=691/0 response=50/USB_EP_OUT ep=0x02 len=16 data=0391000d
+0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:06.236,175] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:06.356,201] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:06.476,379] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:06.596,343] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:06.716,278] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:06.717,346] [0m<inf> usb_device: usb_halt_endpoint_req: Clear halt ep 0x82[0m
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+[00:00:06.717,376] [0m<inf> usb_hid: hid_do_status_cb: Unknown event[0m
+[00:00:06.836,334] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:06.956,390] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+[00:00:07.108,734] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:07.126,495] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=783 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:07.127,746] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=784[0m
+[00:00:07.196,411] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:07.229,888] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/4 response_q=0/1 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=64 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=795/0 response=59/0 reUSB_EP_OUT ep=0x02 len=16 data=0391000d
+sponse_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:07.316,375] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:07.436,401] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:07.556,457] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:07.676,513] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:07.796,508] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:07.797,363] [0m<inf> usb_device: usb_halt_endpoint_req: Clear halt ep 0x82[0m
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+[00:00:07.797,393] [0m<inf> usb_hid: hid_do_status_cb: Unknown event[0m
+[00:00:07.916,503] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:08.036,560] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+[00:00:08.127,746] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=906[0m
+[00:00:08.132,141] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=906 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:08.156,585] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:08.229,888] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/4 response_q=0/1 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=72 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=918/0 response=67/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:08.276,672] [0m<inf> remapper: switch2_pro_handle_outpuUSB_EP_OUT ep=0x02 len=16 data=0391000d
+t_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:08.396,667] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:08.516,662] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:08.636,688] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:08.756,713] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:08.876,708] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:08.877,593] [0m<inf> usb_device: usb_halt_endpoint_req: Clear halt ep 0x82[0m
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+[00:00:08.877,624] [0m<inf> usb_hid: hid_do_status_cb: Unknown event[0m
+[00:00:08.996,734] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:09.116,760] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:09.131,713] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=1026[0m
+[00:00:09.136,138] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=1026 fails=0 enabled=1 rep0=09 rep2=20[0m
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+[00:00:09.229,858] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/4 response_q=0/1 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=80 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=1037/0 response=75/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:09.236,816] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:09.388,732] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:09.476,837] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:09.596,862] [0m<inf> remapper: switch2_pro_handle_outUSB_EP_OUT ep=0x02 len=16 data=0391000d
+put_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:09.716,888] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:09.836,883] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:09.957,031] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:09.958,099] [0m<inf> usb_device: usb_halt_endpoint_req: Clear halt ep 0x82[0m
+[00:00:09.958,129] [0m<inf> usb_hid: hid_do_status_cb: Unknown event[0m
+[00:00:10.076,965] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:10.135,711] [USB_EP_OUT ep=0x02 len=16 data=0391000d
+0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=1124[0m
+[00:00:10.141,113] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=1124 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:10.196,990] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:10.229,919] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/4 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=89 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=1135/0 response=84/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:10.317,047] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00USB_EP_OUT ep=0x02 len=16 data=0391000d
+[0m
+[00:00:10.437,042] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+[00:00:10.558,197] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:10.678,192] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:10.798,248] [0m<iUSB_EP_OUT ep=0x02 len=16 data=0391000d
+nf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:10.918,212] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:11.038,299] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:11.039,215] [0m<inf> usb_device: usb_halt_endpoint_req: Clear halt ep 0x82[0m
+[00:00:11.039,215] [0m<inf> usb_hid: hid_do_status_cb: Unknown event[0m
+[00:00:11.135,711] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=1246[0m
+[00:00:11.142,150] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=1246 fails=0 enabled=1 rep0=09 USB_EP_OUT ep=0x02 len=16 data=0391000d
+rep2=20[0m
+[00:00:11.158,325] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:11.229,888] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/4 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=97 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=1256/0 response=92/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:11.278,289] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:11.398,315] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+[00:00:11.518,371] [0m<inf> remapper: switch2_USB_EP_OUT ep=0x02 len=16 data=0391000d
+pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:11.638,427] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:11.758,422] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:11.878,479] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:11.998,474] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:12.118,499] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d USB_EP_OUT ep=0x02 len=16 data=0391000d
+00 08 00 00[0m
+[00:00:12.119,476] [0m<inf> usb_device: usb_halt_endpoint_req: Clear halt ep 0x82[0m
+[00:00:12.119,506] [0m<inf> usb_hid: hid_do_status_cb: Unknown event[0m
+[00:00:12.135,742] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=1354[0m
+[00:00:12.142,181] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=1354 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:12.229,888] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/4 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=105 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=1364/0 response=100/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:12.238,525] [0m<USB_EP_OUT ep=0x02 len=16 data=0391000d
+inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:12.358,551] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:12.478,607] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+[00:00:12.598,602] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:12.718,688] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:12.838,684] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:12.958,740] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00USB_EP_OUT ep=0x02 len=16 data=0391000d
+ 08 00 00[0m
+[00:00:13.078,735] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:13.135,711] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=1470[0m
+[00:00:13.143,188] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=1470 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:13.198,730] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:13.199,829] [0m<inf> usb_device: usb_halt_endpoint_req: Clear halt ep 0x82[0m
+[00:00:13.199,859] [0m<inf> usb_hid: hid_do_status_cb: Unknown event[0m
+[00:00:13.229,888] [0m<inf> remapper: swUSB_EP_OUT ep=0x02 len=16 data=0391000d
+itch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/4 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=114 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=1480/0 response=109/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:13.318,756] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:13.438,903] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+[00:00:13.558,929] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:13.678,955] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:13.799,255] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:13.919,189] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:14.039,215] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:14.135,711] [0m<inf> remaUSB_EP_OUT ep=0x02 len=16 data=0391000d
+pper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=1574[0m
+[00:00:14.143,157] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=1574 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:14.159,301] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:14.229,888] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/4 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=122 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=1584/0 response=117/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:14.279,296] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:14.280,212] [0m<inf> usb_device: usbUSB_EP_OUT ep=0x02 len=16 data=0391000d
+_halt_endpoint_req: Clear halt ep 0x82[0m
+[00:00:14.280,242] [0m<inf> usb_hid: hid_do_status_cb: Unknown event[0m
+[00:00:14.399,322] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:14.519,287] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+[00:00:14.639,343] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:14.759,429] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:14.879,425] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:14.999,420] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:15.119,506] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:15.139,739] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=1694[0m
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+[00:00:15.144,195] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=1694 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:15.229,888] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/4 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=130 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=1704/0 response=125/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:15.239,501] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:15.359,619] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:15.360,473] [0m<inf> usb_device: usb_halt_endpoint_req: Clear halt ep 0x82[0m
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+[00:00:15.360,504] [0m<inf> usb_hid: hid_do_status_cb: Unknown event[0m
+[00:00:15.479,583] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:15.599,609] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+[00:00:15.719,665] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:15.839,691] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:15.959,747] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:16.079,711] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:16.182,800] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=1796 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:16.183,746] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: coUSB_EP_OUT ep=0x02 len=16 data=0391000d
+unt=1797[0m
+[00:00:16.199,737] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:16.229,888] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/4 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=139 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=1801/0 response=134/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:16.319,793] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:16.439,758] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:16.440,826] [0m<inf> usb_device: usb_halt_endpoint_req: Clear halt ep 0x82[USB_EP_OUT ep=0x02 len=16 data=0391000d
+0m
+[00:00:16.440,856] [0m<inf> usb_hid: hid_do_status_cb: Unknown event[0m
+[00:00:16.559,936] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:16.680,023] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+[00:00:16.800,018] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:16.920,043] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:17.040,039] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:17.160,095] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:17.183,746] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=1919[0m
+[00:00:17.188,201] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeaUSB_EP_OUT ep=0x02 len=16 data=0391000d
+t: writes=1919 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:17.229,888] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/4 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=147 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=1924/0 response=142/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:17.280,120] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:17.400,115] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:17.520,202] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:17.529,113] [0m<inf> usb_devUSB_EP_OUT ep=0x02 len=16 data=0391000d
+ice: usb_halt_endpoint_req: Clear halt ep 0x82[0m
+[00:00:17.529,144] [0m<inf> usb_hid: hid_do_status_cb: Unknown event[0m
+[00:00:17.640,258] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:17.760,284] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+[00:00:17.880,340] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:18.000,396] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:18.120,361] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:18.187,744] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=2039[0m
+[00:00:18.192,199] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=2039 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:18.229,888] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=USB_EP_OUT ep=0x02 len=16 data=0391000d
+0/4 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=155 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=2043/0 response=150/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:18.240,325] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:18.388,732] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:18.480,438] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:18.600,463] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:18.601,654] [0m<inf> usb_device: usb_halt_endpoint_req: Clear halt ep 0x82[USB_EP_OUT ep=0x02 len=16 data=0391000d
+0m
+[00:00:18.601,684] [0m<inf> usb_hid: hid_do_status_cb: Unknown event[0m
+[00:00:18.720,458] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:18.840,515] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+[00:00:18.960,571] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:19.080,566] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:19.191,711] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=2137[0m
+[00:00:19.196,166] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=2137 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:19.200,592] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:19.229,888] [0m<inf> remappeUSB_EP_OUT ep=0x02 len=16 data=0391000d
+r: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/4 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=164 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=2141/0 response=159/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:19.320,739] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:19.440,765] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:19.560,760] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:19.680,847] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:19.681,73USB_EP_OUT ep=0x02 len=16 data=0391000d
+2] [0m<inf> usb_device: usb_halt_endpoint_req: Clear halt ep 0x82[0m
+[00:00:19.681,762] [0m<inf> usb_hid: hid_do_status_cb: Unknown event[0m
+[00:00:19.800,842] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:19.920,867] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+[00:00:20.040,924] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:20.160,919] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:20.191,711] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=2259[0m
+[00:00:20.196,166] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=2259 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:20.229,888] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/4 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=172 host_drop=0 set=0 translated=0 mapped=1/0 hearUSB_EP_OUT ep=0x02 len=16 data=0391000d
+tbeat=2263/0 response=167/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:20.280,944] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:20.401,123] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:20.605,163] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:20.648,742] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:20.761,199] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:20.762,237] [0m<inf> usb_device: usb_haltUSB_EP_OUT ep=0x02 len=16 data=0391000d
+_endpoint_req: Clear halt ep 0x82[0m
+[00:00:20.762,268] [0m<inf> usb_hid: hid_do_status_cb: Unknown event[0m
+[00:00:20.881,378] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:21.001,281] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+[00:00:21.121,368] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:21.195,739] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=2363[0m
+[00:00:21.201,202] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=2363 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:21.229,888] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/4 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=180 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=2366/0 response=175/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:21.248,901] [0m<inf> remapperUSB_EP_OUT ep=0x02 len=16 data=0391000d
+: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:21.361,358] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:21.481,384] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:21.601,379] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:21.721,466] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:21.841,552] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:21.842,498] [0m<inf> usb_device: usb_halt_endpoint_req: Clear halt ep 0x82[0m
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+[00:00:21.842,529] [0m<inf> usb_hid: hid_do_status_cb: Unknown event[0m
+[00:00:21.961,547] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:22.081,542] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+[00:00:22.201,660] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:22.201,751] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=2480[0m
+[00:00:22.204,193] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=2480 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:22.229,888] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/4 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=189 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=2483/0 response=184/0 respUSB_EP_OUT ep=0x02 len=16 data=0391000d
+onse_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:22.321,655] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:22.441,711] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:22.561,798] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:22.681,762] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:22.885,864] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:22.929,351] [0m<inf> remapper: switch2_pro_handle_oUSB_EP_OUT ep=0x02 len=16 data=0391000d
+utput_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:22.938,323] [0m<inf> usb_device: usb_halt_endpoint_req: Clear halt ep 0x82[0m
+[00:00:22.938,354] [0m<inf> usb_hid: hid_do_status_cb: Unknown event[0m
+[00:00:23.041,809] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:23.161,895] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+[00:00:23.203,735] [0m<inf> remapper: int_in_ready_cb0: sw2 IN endpoint polled by console: count=2580[0m
+[00:00:23.210,144] [0m<inf> remapper: switch_pro_send_input_heartbeat: sw2 heartbeat: writes=2580 fails=0 enabled=1 rep0=09 rep2=20[0m
+[00:00:23USB_EP_OUT ep=0x02 len=16 data=0391000d
+.229,888] [0m<inf> remapper: switch_pro_log_stats: switch_pro_stats enabled=1 report_q=0/4 response_q=0/2 out_q=0 out_overflows=0 ble=0 ble_drop=0 host=197 host_drop=0 set=0 translated=0 mapped=1/0 heartbeat=2582/0 response=192/0 response_drop=0 rumble=0/0 fail=0 busy=0 buttons=00 00 00[0m
+[00:00:23.281,890] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+USB_EP_OUT ep=0x02 len=16 data=0391000d
+[00:00:23.401,885] [0m<inf> remapper: switch2_pro_handle_output_report: sw2 host_cmd len=16: 03 91 00 0d 00 08 00 00[0m
