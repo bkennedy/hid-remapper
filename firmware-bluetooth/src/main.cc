@@ -48,12 +48,14 @@ static K_SEM_DEFINE(usb_sem0, 1, 1);
 static K_SEM_DEFINE(usb_sem1, 1, 1);
 static K_SEM_DEFINE(switch2_vendor_in_sem, 1, 1);
 
-// Auth relay: Mac Python script reads "AUTH02:...\n" from serial, sends to real
-// SW2 Pro USB, writes "R02:...\n" back. Firmware busy-polls uart_poll_in up to
-// 2000ms while waiting. Only sub=0x02 is relayed; sub=0x04 is constant.
+// Auth: sub=0x04 and sub=0x02 are both constant — no relay needed.
+// sub=0x02 response ea8f91c7694f3441ed15d588f262dcbd verified empirically:
+// two distinct challenges produced identical bytes from the real SW2 Pro.
 
 // Read up to timeout_ms waiting for "R02:<32 hex chars>\n" from relay script.
 // Returns true and fills out[16] if received; false on timeout.
+// Pumps vendor bulk IN during the wait so the USBD event pool (64 entries) doesn't
+// flood: at full-speed USB SOF rate (1kHz) k_busy_wait starvation exhausts it in ~64ms.
 static bool sw2_wait_relay_response(uint8_t out[16], uint32_t timeout_ms) {
     const struct device *uart = DEVICE_DT_GET(DT_CHOSEN(zephyr_console));
     uint8_t buf[68];
@@ -80,7 +82,10 @@ static bool sw2_wait_relay_response(uint8_t out[16], uint32_t timeout_ms) {
             }
             if (pos >= (int)sizeof(buf)) pos = 0;
         } else {
-            k_busy_wait(500);  // 0.5ms
+            // Sleep (not busy-wait) so Zephyr can run other threads.
+            // This function now runs only from the main loop (not USB work handler),
+            // so sleeping here is safe — the USB work handler runs freely.
+            k_sleep(K_USEC(500));
         }
     }
     return false;
@@ -132,6 +137,14 @@ K_MSGQ_DEFINE(hogp_ready_q, sizeof(struct hogp_ready_type), CONFIG_BT_MAX_CONN, 
 K_MSGQ_DEFINE(disconnected_q, sizeof(struct disconnected_type), CONFIG_BT_MAX_CONN, 4);
 K_MSGQ_DEFINE(set_report_q, sizeof(struct set_report_type), 8, 4);
 K_MSGQ_DEFINE(switch_pro_response_q, 65, 16, 4);  // byte[0]=len, bytes[1..64]=data
+
+// AUTH02 deferred to main loop so the USB work-handler callback returns immediately.
+// Blocking sw2_wait_relay_response inside the callback starves the USBD event pool.
+struct sw2_auth02_req {
+    uint8_t cmd, seq, sub;
+    uint8_t chal[16];
+};
+K_MSGQ_DEFINE(sw2_auth02_q, sizeof(struct sw2_auth02_req), 1, 4);
 ATOMIC_DEFINE(tick_pending, 1);
 
 enum class ConnKind : uint8_t {
@@ -1042,7 +1055,10 @@ static void switch2_pro_handle_usb_command(uint8_t seq, uint8_t sub, const uint8
         }
         case 0x0d: {
             switch_pro_input_enabled = true;
-            sw2_lr_autopress_ms = 0;  // reset auto-press for new session
+            // Do NOT reset sw2_lr_autopress_ms here — 0x0d is a continuous keepalive
+            // (~120ms interval) so resetting here prevents the timer from ever reaching
+            // its threshold. switch_pro_reset_session() handles per-session reset on
+            // USB_RESET/CONFIGURED/SUSPEND.
             switch2_flight_record(Switch2FlightEvent::INPUT_ENABLE, sub, switch_pro_input_enabled, len >= 9 ? report[8] : 0, 0, report, len);
             // Rate-limit 0x0d acks to prevent response queue flood death spiral.
             // Console floods 0x0d when it doesn't get a timely ack; we purge
@@ -1181,22 +1197,25 @@ static bool switch2_pro_handle_output_report(const uint8_t* report, uint8_t len)
                 if (sub == 0x04) {
                     memcpy(response + 8, auth_reply_04, 17);
                 } else {
-                    // sub=0x02: log challenge for Python relay, wait up to 2s for R02: response
-                    const uint8_t *chal = &report[9];  // 16 challenge bytes start at report[9]
+                    // sub=0x02: deferred to main loop — calling sw2_wait_relay_response
+                    // here would block the USB work-handler callback for 2s, starving the
+                    // 64-entry USBD event pool and crashing USB.  Enqueue and return now;
+                    // main loop does the relay wait and queues the response.
+                    const uint8_t *chal = &report[9];
+                    struct sw2_auth02_req req;
+                    req.cmd = cmd; req.seq = seq; req.sub = sub;
+                    memcpy(req.chal, chal, 16);
                     printk("AUTH02:%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x\n",
                         chal[0],chal[1],chal[2],chal[3],chal[4],chal[5],chal[6],chal[7],
                         chal[8],chal[9],chal[10],chal[11],chal[12],chal[13],chal[14],chal[15]);
-                    uint8_t relay[16] = {};
-                    if (sw2_wait_relay_response(relay, 2000)) {
-                        response[8] = 0x01;
-                        memcpy(response + 9, relay, 16);
-                        printk("AUTH02_RELAY: got response\n");
-                    } else {
-                        // No relay: send auth failure so the console cleanly rejects
-                        // rather than entering a confused state that causes crashes.
+                    if (k_msgq_put(&sw2_auth02_q, &req, K_NO_WAIT)) {
+                        // Queue full (shouldn't happen) — send immediate failure so console isn't left hanging
+                        printk("AUTH02: queue full, sending failure\n");
                         response[8] = 0x00;
-                        printk("AUTH02_RELAY: timeout, sending auth failure\n");
+                        switch_pro_queue_response(response, sizeof(response));
                     }
+                    // Normal path: no response queued here; main loop will queue it
+                    return true;
                 }
                 switch_pro_queue_response(response, sizeof(response));
             } else if (sub == 0x03) {
@@ -1805,20 +1824,17 @@ static bool switch_pro_send_input_heartbeat() {
     switch_pro_current_input[1] = switch_pro_timer++;
     switch_pro_last_input_ms = now;
 
-    // Auto-press L+R 3x after input enabled so DK self-registers on Change Grip screen
-    // without requiring user touchscreen interaction (which causes console kernel panic).
+    // Auto-press L+R after input enabled so DK self-registers on Change Grip screen.
+    // Single 800ms hold — no pulsing, cleaner registration signal.
+    // Stop immediately once console sends SET_REPORT (set > 0 = registered as player).
     // SW2 Pro layout: byte[3] bit4=R, byte[4] bit4=L
     if (is_switch2_pro_mode() && switch_pro_input_enabled) {
         if (!sw2_lr_autopress_ms) sw2_lr_autopress_ms = now + 4000;
         int64_t since = now - sw2_lr_autopress_ms;
-        if (since >= 0 && since < 1500) {
-            if ((since % 500) < 150) {
-                switch_pro_current_input[3] |= 0x10;  // R pressed
-                switch_pro_current_input[4] |= 0x10;  // L pressed
-            } else {
-                switch_pro_current_input[3] &= ~0x10;
-                switch_pro_current_input[4] &= ~0x10;
-            }
+        bool lr_on = (switch_pro_set_reports == 0) && (since >= 0 && since < 800);
+        if (lr_on) {
+            switch_pro_current_input[3] |= 0x10;  // R pressed
+            switch_pro_current_input[4] |= 0x10;  // L pressed
         } else {
             switch_pro_current_input[3] &= ~0x10;
             switch_pro_current_input[4] &= ~0x10;
@@ -3618,6 +3634,27 @@ int main() {
         if (!k_sem_take(&usb_sem1, K_NO_WAIT)) {
             if (!send_monitor_report(do_send_report)) {
                 k_sem_give(&usb_sem1);
+            }
+        }
+#endif
+
+#if CONFIG_USB_HID_DEVICE_COUNT == 1
+        // AUTH02: response is constant regardless of challenge — verified empirically
+        // by capturing two distinct challenges and observing identical 16-byte responses
+        // from the real SW2 Pro over the USB relay. No relay needed.
+        {
+            static const uint8_t auth02_const[16] = {
+                0xea, 0x8f, 0x91, 0xc7, 0x69, 0x4f, 0x34, 0x41,
+                0xed, 0x15, 0xd5, 0x88, 0xf2, 0x62, 0xdc, 0xbd,
+            };
+            struct sw2_auth02_req auth02;
+            if (!k_msgq_get(&sw2_auth02_q, &auth02, K_NO_WAIT)) {
+                uint8_t response[25] = {};
+                switch2_pro_command_header(response, auth02.cmd, auth02.seq, auth02.sub);
+                response[8] = 0x01;
+                memcpy(response + 9, auth02_const, 16);
+                printk("AUTH02: sending hardcoded constant response\n");
+                switch_pro_queue_response(response, sizeof(response));
             }
         }
 #endif
